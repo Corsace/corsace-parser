@@ -1,5 +1,6 @@
 pub mod parse;
 use bitflags::bitflags;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 pub type ParserResult<T, E = ParserError> = std::result::Result<T, E>;
@@ -44,6 +45,7 @@ pub enum Mode {
 
     Mania = 3,
 }
+#[derive(Default, Serialize, Deserialize)]
 pub struct Judgements {
     pub count_300: u16,
     pub count_100: u16,
@@ -92,6 +94,7 @@ bitflags! {
         const Key2 = 268435456;
     }
 }
+
 pub struct Replay {
     pub mode: Mode,
     pub version: u32,
