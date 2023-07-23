@@ -14,7 +14,7 @@ function handleFile(e) {
 
     console.log("data size: " + data.length);
     console.log("calling parse_replay");
-    console.log(wasm.parse_replay(data));
+    console.log(wasm.parseReplay(data));
   };
   reader.readAsArrayBuffer(file);
 }

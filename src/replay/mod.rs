@@ -1,9 +1,9 @@
 pub mod parse;
 pub mod utils;
-
 use bitflags::bitflags;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
+use tsify::Tsify;
 
 use self::parse::LEB128Error;
 
@@ -43,7 +43,8 @@ pub enum ParserError
     #[error("invalid buttons: {0}")]
     InvalidButtons(u32),
 }
-#[derive(Default, Serialize, Deserialize, Debug)]
+#[derive(Default, Serialize, Deserialize, Debug, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 
 pub enum Mode
 {
@@ -56,7 +57,8 @@ pub enum Mode
 
     Mania = 3,
 }
-#[derive(Default, Serialize, Deserialize, Debug)]
+#[derive(Default, Serialize, Deserialize, Debug, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 
 pub struct Judgements
 {
@@ -67,7 +69,8 @@ pub struct Judgements
     pub count_katu: u16,
     pub miss:       u16,
 }
-#[derive(Default, Serialize, Deserialize, Debug)]
+#[derive(Default, Serialize, Deserialize, Debug, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct LifegraphData
 {
     //time in ms
@@ -105,7 +108,9 @@ mod integer_representation
 bitflags! {
 
     #[derive(Default, Serialize, Deserialize, Debug)]
+
     #[serde(transparent)]
+
     pub struct Mods: u32 {
         const None = 0;
         const NoFail = 1;
@@ -139,8 +144,8 @@ bitflags! {
         const Key2 = 268435456;
     }
 }
-#[derive(Default, Serialize, Deserialize, Debug)]
-
+#[derive(Default, Serialize, Deserialize, Debug, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct Replay
 {
     pub mode:         Mode,
@@ -153,6 +158,7 @@ pub struct Replay
     pub max_combo:    u16,
     pub perfect:      bool,
     #[serde(with = "integer_representation")]
+    #[tsify(type = "number")]
     pub mods:         Mods,
     pub life_graph:   Vec<LifegraphData>,
     // measured in windows ticks
