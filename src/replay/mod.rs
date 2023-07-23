@@ -1,12 +1,18 @@
 pub mod parse;
+pub mod utils;
+
 use bitflags::bitflags;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+use self::parse::LEB128Error;
+
 pub type ParserResult<T, E = ParserError> = std::result::Result<T, E>;
+
 #[non_exhaustive]
 #[derive(Debug, Error)]
-pub enum ParserError {
+pub enum ParserError
+{
     #[error("error creating lzma decoder: {0}")]
     LzmaCreate(#[from] lzma_rs::error::Error),
 
@@ -22,6 +28,9 @@ pub enum ParserError {
     #[error("error parsing float: {0}")]
     ParseFloat(#[from] std::num::ParseFloatError),
 
+    #[error("error parsing string")]
+    ParseString(#[from] crate::replay::LEB128Error),
+
     #[error("missing field in life graph")]
     LifeGraphMissing,
 
@@ -34,10 +43,12 @@ pub enum ParserError {
     #[error("invalid buttons: {0}")]
     InvalidButtons(u32),
 }
+#[derive(Default, Serialize, Deserialize, Debug)]
 
-#[derive(Debug, Copy, Clone)]
-pub enum Mode {
-    Osu = 0,
+pub enum Mode
+{
+    #[default]
+    Osu   = 0,
 
     Taiko = 1,
 
@@ -45,22 +56,56 @@ pub enum Mode {
 
     Mania = 3,
 }
-#[derive(Default, Serialize, Deserialize)]
-pub struct Judgements {
-    pub count_300: u16,
-    pub count_100: u16,
-    pub count_50: u16,
+#[derive(Default, Serialize, Deserialize, Debug)]
+
+pub struct Judgements
+{
+    pub count_300:  u16,
+    pub count_100:  u16,
+    pub count_50:   u16,
     pub count_geki: u16,
     pub count_katu: u16,
-    pub miss: u16,
+    pub miss:       u16,
 }
-pub struct LifegraphData {
+#[derive(Default, Serialize, Deserialize, Debug)]
+pub struct LifegraphData
+{
     //time in ms
-    pub time: i32,
+    pub time:       i32,
     pub life_value: f64,
 }
+mod integer_representation
+{
+    use serde::{self, Deserialize, Deserializer, Serialize, Serializer};
+
+    // CHANGE THIS ACCORDING TO YOUR CODE
+    use crate::replay::Mods;
+    type IntRep = u32;
+    type Flags = Mods;
+
+    pub fn serialize<S>(date: &Flags, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        date.bits().serialize(serializer)
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<Flags, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let raw: IntRep = IntRep::deserialize(deserializer)?;
+        Mods::from_bits(raw).ok_or(serde::de::Error::custom(format!(
+            "Unexpected flags value {}",
+            raw
+        )))
+    }
+}
+
 bitflags! {
-    #[derive(Default)]
+
+    #[derive(Default, Serialize, Deserialize, Debug)]
+    #[serde(transparent)]
     pub struct Mods: u32 {
         const None = 0;
         const NoFail = 1;
@@ -94,21 +139,24 @@ bitflags! {
         const Key2 = 268435456;
     }
 }
+#[derive(Default, Serialize, Deserialize, Debug)]
 
-pub struct Replay {
-    pub mode: Mode,
-    pub version: u32,
+pub struct Replay
+{
+    pub mode:         Mode,
+    pub version:      u32,
     pub beatmap_hash: String,
-    pub replay_hash: String,
-    pub username: String,
-    pub judgements: Judgements,
-    pub score: u32,
-    pub max_combo: u16,
-    pub perfect: bool,
-    pub mods: Mods,
-    pub life_graph: LifegraphData,
+    pub replay_hash:  String,
+    pub username:     String,
+    pub judgements:   Judgements,
+    pub score:        u32,
+    pub max_combo:    u16,
+    pub perfect:      bool,
+    #[serde(with = "integer_representation")]
+    pub mods:         Mods,
+    pub life_graph:   Vec<LifegraphData>,
     // measured in windows ticks
-    pub timestamp: u64,
-    pub replay_data: Vec<u8>,
-    pub score_id: Option<u64>,
+    pub timestamp:    u64,
+    pub replay_data:  Vec<u8>,
+    pub score_id:     Option<u64>,
 }
