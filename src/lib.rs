@@ -1,3 +1,4 @@
+pub mod beatmap;
 pub mod macros;
 pub mod replay;
 

@@ -1,8 +1,9 @@
 use std::io::Read;
 
-use super::{Judgements, Mods, ParserResult, Replay};
+use super::{Judgements, LifegraphData, Mods, ParserResult, Replay};
 use crate::replay::{Mode, ParserError};
 use byteorder::{LittleEndian, ReadBytesExt};
+use itertools::Itertools;
 use thiserror::Error;
 
 pub type LEBResult<T, E = LEB128Error> = std::result::Result<T, E>;
@@ -102,6 +103,44 @@ impl Replay
         let max_combo = replay.read_u16::<LittleEndian>()?;
         let perfect = replay.read_u8()? == 1;
         let mods = replay.read_u32::<LittleEndian>()?;
+        let life_graph = replay
+            .read_uleb128_string()?
+            .split(",")
+            .filter_map(|entry| {
+                if entry.is_empty()
+                {
+                    None
+                }
+                else
+                {
+                    Some(entry.split("|"))
+                }
+            })
+            .map(|mut entry| {
+                let time = entry
+                    .next()
+                    .ok_or(ParserError::LifeGraphMissing)?
+                    .parse::<i32>()?;
+                let life_value = entry
+                    .next()
+                    .ok_or(ParserError::LifeGraphMissing)?
+                    .parse::<f64>()?;
+
+                Ok(LifegraphData { time, life_value })
+            })
+            .collect::<ParserResult<Vec<_>>>()?;
+
+        let timestamp = replay.read_u64::<LittleEndian>()?;
+        let replay_data_length = replay.read_u32::<LittleEndian>()?;
+
+        let mut replay_data = vec![0; replay_data_length as usize];
+        replay.read_exact(&mut replay_data)?;
+
+        let score_id = match replay.read_u64::<LittleEndian>()?
+        {
+            0 => None,
+            v => Some(v.to_string()),
+        };
 
         Ok(Replay {
             mode,
@@ -121,6 +160,10 @@ impl Replay
             max_combo,
             perfect,
             mods: Mods::from_bits(mods).ok_or(ParserError::UnexpectedMods(mods))?,
+            life_graph,
+            timestamp: timestamp.to_string(),
+            replay_data,
+            score_id,
             ..Default::default()
         })
     }

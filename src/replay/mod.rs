@@ -1,5 +1,4 @@
 pub mod parse;
-pub mod utils;
 use bitflags::bitflags;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -50,11 +49,8 @@ pub enum Mode
 {
     #[default]
     Osu   = 0,
-
     Taiko = 1,
-
     Catch = 2,
-
     Mania = 3,
 }
 #[derive(Default, Serialize, Deserialize, Debug, Tsify)]
@@ -81,7 +77,6 @@ mod integer_representation
 {
     use serde::{self, Deserialize, Deserializer, Serialize, Serializer};
 
-    // CHANGE THIS ACCORDING TO YOUR CODE
     use crate::replay::Mods;
     type IntRep = u32;
     type Flags = Mods;
@@ -162,7 +157,7 @@ pub struct Replay
     pub mods:         Mods,
     pub life_graph:   Vec<LifegraphData>,
     // measured in windows ticks
-    pub timestamp:    u64,
+    pub timestamp:    String,
     pub replay_data:  Vec<u8>,
-    pub score_id:     Option<u64>,
+    pub score_id:     Option<String>,
 }
