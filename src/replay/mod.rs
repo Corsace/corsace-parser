@@ -41,10 +41,14 @@ pub enum ParserError
 
     #[error("invalid buttons: {0}")]
     InvalidButtons(u32),
+    #[error("error parsing beatmap")]
+    BeatmapParseError(#[from] rosu_pp::ParseError),
+    #[error("Beatmap and Replay hash mismatch, replay -> {0} beatmap -> {1}")]
+    BeatmapHashMismatch(String, String),
 }
+
 #[derive(Default, Serialize, Deserialize, Debug, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
-
 pub enum Mode
 {
     #[default]
@@ -158,6 +162,6 @@ pub struct Replay
     pub life_graph:   Vec<LifegraphData>,
     // measured in windows ticks
     pub timestamp:    String,
-    pub replay_data:  Vec<u8>,
+    pub replay_data:  Option<Vec<u8>>,
     pub score_id:     Option<String>,
 }

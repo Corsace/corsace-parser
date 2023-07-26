@@ -20,15 +20,19 @@ pub fn greet() { alert("Hello, replay-parser!"); }
 
 //^ returns js object containing replay metadata
 #[wasm_bindgen(js_name = parseReplay)]
-pub fn parse_replay(replay: &mut [u8]) -> Replay
+pub fn parse_replay(replay: &mut [u8]) -> Result<Replay, JsError>
 {
-    let parsed = Replay::parse(&mut replay.as_ref()).unwrap();
-    parsed
+    let parsed = Replay::parse(&mut replay.as_ref(), false)?;
+    Ok(parsed)
 }
 
 //^ return js object containing everything from parse_replay + replaydata as an array of hitobjects w hit/cursor/tap info
 #[wasm_bindgen(js_name = parseReplayExtra)]
-pub fn parse_replay_extra(replay: &mut [u8], beatmap: &mut [u8]) -> JsValue { todo!() }
+pub fn parse_replay_extra(replay: &mut [u8], beatmap: &mut [u8]) -> Result<Replay, JsError>
+{
+    let extras = Replay::parse_extra(&mut replay.as_ref(), &mut beatmap.as_ref())?;
+    Ok(extras)
+}
 
 //^ returns js object containing map metadata
 #[wasm_bindgen(js_name = parseBeatmap)]

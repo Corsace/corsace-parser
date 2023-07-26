@@ -4,6 +4,7 @@ use super::{Judgements, LifegraphData, Mods, ParserResult, Replay};
 use crate::replay::{Mode, ParserError};
 use byteorder::{LittleEndian, ReadBytesExt};
 use itertools::Itertools;
+use rosu_pp::Beatmap;
 use thiserror::Error;
 
 pub type LEBResult<T, E = LEB128Error> = std::result::Result<T, E>;
@@ -78,7 +79,7 @@ pub trait ULEB128Decode: Read
 impl<R: Read + ?Sized> ULEB128Decode for R {}
 impl Replay
 {
-    pub fn parse<R: Read>(replay: &mut R) -> ParserResult<Replay>
+    pub fn parse<R: Read>(replay: &mut R, extra: bool) -> ParserResult<Replay>
     {
         let mode = match replay.read_u8()?
         {
@@ -103,6 +104,7 @@ impl Replay
         let max_combo = replay.read_u16::<LittleEndian>()?;
         let perfect = replay.read_u8()? == 1;
         let mods = replay.read_u32::<LittleEndian>()?;
+
         let life_graph = replay
             .read_uleb128_string()?
             .split(",")
@@ -162,9 +164,16 @@ impl Replay
             mods: Mods::from_bits(mods).ok_or(ParserError::UnexpectedMods(mods))?,
             life_graph,
             timestamp: timestamp.to_string(),
-            replay_data,
+            replay_data: None,
             score_id,
             ..Default::default()
         })
+    }
+    pub fn parse_extra<R: Read>(replay: &mut R, beatmap: &mut R) -> ParserResult<Replay>
+    {
+        let replay = Replay::parse(replay, true)?;
+        let beatmap = Beatmap::parse(beatmap)?;
+
+        todo!()
     }
 }
