@@ -26,10 +26,12 @@ pub enum LEB128Error
     #[error("string conversion error: {0}")]
     Utf8(#[from] std::string::FromUtf8Error),
 }
+
 pub trait ULEB128Decode: Read
 {
     const LEB128_HIGH_ORDER_BIT: u8 = 1 << 7;
     const LEB128_SIGN_BIT: u8 = 1 << 6;
+
     fn read_uleb128(&mut self) -> LEBResult<u64>
     {
         let mut result = 0;
@@ -51,6 +53,7 @@ pub trait ULEB128Decode: Read
             shift += 7;
         }
     }
+
     fn read_uleb128_string(&mut self) -> LEBResult<String>
     {
         match self.read_u8()?
@@ -134,7 +137,12 @@ impl Replay
 
         let timestamp = replay.read_u64::<LittleEndian>()?;
         let replay_data_length = replay.read_u32::<LittleEndian>()?;
-
+        let mut replay_data = None;
+        if extra
+        {
+            replay_data = Some(vec![0; replay_data_length as usize]);
+            replay.read_exact(&mut replay_data.unwrap())?;
+        }
         let mut replay_data = vec![0; replay_data_length as usize];
         replay.read_exact(&mut replay_data)?;
 
@@ -164,16 +172,17 @@ impl Replay
             mods: Mods::from_bits(mods).ok_or(ParserError::UnexpectedMods(mods))?,
             life_graph,
             timestamp: timestamp.to_string(),
-            replay_data: None,
+            replay_data: Some(replay_data),
             score_id,
             ..Default::default()
         })
     }
+
     pub fn parse_extra<R: Read>(replay: &mut R, beatmap: &mut R) -> ParserResult<Replay>
     {
         let replay = Replay::parse(replay, true)?;
         let beatmap = Beatmap::parse(beatmap)?;
 
-        todo!()
+        Ok(replay)
     }
 }

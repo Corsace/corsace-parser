@@ -4,6 +4,8 @@ pub mod replay;
 
 mod utils;
 
+use beatmap::ParserBeatmap;
+use rosu_pp::Beatmap;
 use wasm_bindgen::prelude::*;
 
 use crate::replay::Replay;
@@ -36,7 +38,11 @@ pub fn parse_replay_extra(replay: &mut [u8], beatmap: &mut [u8]) -> Result<Repla
 
 //^ returns js object containing map metadata
 #[wasm_bindgen(js_name = parseBeatmap)]
-pub fn parse_beatmap(beatmap: &mut [u8]) -> JsValue { todo!() }
+pub fn parse_beatmap(beatmap: &mut [u8]) -> Result<ParserBeatmap, JsError>
+{
+    let parsed = ParserBeatmap::parse(beatmap)?;
+    Ok(parsed)
+}
 
 /*
 struct Score {
