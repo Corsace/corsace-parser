@@ -1,11 +1,8 @@
-use std::io::{BufRead, BufReader, Read};
+use std::io::Read;
 
-use crate::{
-    console_log,
-    replay::{ParserError, ParserResult},
-};
+use crate::replay::ParserResult;
 use libosu::prelude::Color;
-use rosu_pp::{osu::OsuDifficultyAttributes, Beatmap, BeatmapExt, OsuPP};
+use rosu_pp::{osu::OsuDifficultyAttributes, Beatmap, OsuPP};
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 #[derive(Default, Serialize, Deserialize, Debug, Tsify)]
@@ -48,7 +45,7 @@ pub struct ParserBeatmap
 use libosu::prelude::Beatmap as libosuBeatmap;
 impl ParserBeatmap
 {
-    pub fn parse<R: Read + Clone>(mut beatmap: &mut R) -> ParserResult<Self>
+    pub fn parse<R: Read + Clone>(beatmap: &mut R) -> ParserResult<Self>
     {
         let parsed: ParserBeatmap = libosuBeatmap::parse(beatmap.clone())?.into();
         let parsed = parsed.extend_from_rosu(Beatmap::parse(beatmap)?);

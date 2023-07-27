@@ -3,7 +3,6 @@ use std::io::Read;
 use super::{Judgements, LifegraphData, Mods, ParserResult, Replay};
 use crate::replay::{Mode, ParserError};
 use byteorder::{LittleEndian, ReadBytesExt};
-use itertools::Itertools;
 use rosu_pp::Beatmap;
 use thiserror::Error;
 
@@ -141,10 +140,8 @@ impl Replay
         if extra
         {
             replay_data = Some(vec![0; replay_data_length as usize]);
-            replay.read_exact(&mut replay_data.unwrap())?;
+            replay.read_exact(&mut replay_data.as_mut().unwrap())?;
         }
-        let mut replay_data = vec![0; replay_data_length as usize];
-        replay.read_exact(&mut replay_data)?;
 
         let score_id = match replay.read_u64::<LittleEndian>()?
         {
@@ -172,7 +169,7 @@ impl Replay
             mods: Mods::from_bits(mods).ok_or(ParserError::UnexpectedMods(mods))?,
             life_graph,
             timestamp: timestamp.to_string(),
-            replay_data: Some(replay_data),
+            replay_data: replay_data,
             score_id,
             ..Default::default()
         })
@@ -181,7 +178,7 @@ impl Replay
     pub fn parse_extra<R: Read>(replay: &mut R, beatmap: &mut R) -> ParserResult<Replay>
     {
         let replay = Replay::parse(replay, true)?;
-        let beatmap = Beatmap::parse(beatmap)?;
+        let _beatmap = Beatmap::parse(beatmap)?;
 
         Ok(replay)
     }
