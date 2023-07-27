@@ -40,7 +40,7 @@ pub fn parse_replay_extra(replay: &mut [u8], beatmap: &mut [u8]) -> Result<Repla
 #[wasm_bindgen(js_name = parseBeatmap)]
 pub fn parse_beatmap(beatmap: &mut [u8]) -> Result<ParserBeatmap, JsError>
 {
-    let parsed = ParserBeatmap::parse(beatmap)?;
+    let parsed = ParserBeatmap::parse(&mut beatmap.as_ref())?;
     Ok(parsed)
 }
 
