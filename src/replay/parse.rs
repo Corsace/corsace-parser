@@ -1,7 +1,10 @@
 use std::io::Read;
 
 use super::{Judgements, LifegraphData, Mods, ParserResult, Replay};
-use crate::replay::{Mode, ParserError};
+use crate::{
+    beatmap::ParserBeatmap,
+    replay::{Mode, ParserError},
+};
 use byteorder::{LittleEndian, ReadBytesExt};
 use rosu_pp::Beatmap;
 use thiserror::Error;
@@ -175,11 +178,28 @@ impl Replay
         })
     }
 
-    pub fn parse_extra<R: Read>(replay: &mut R, beatmap: &mut R) -> ParserResult<Replay>
+    pub fn parse_extra<R: Read + Clone + std::convert::AsRef<[u8]>>(
+        replay: &mut R, beatmap: &mut R,
+    ) -> ParserResult<Replay>
     {
-        let replay = Replay::parse(replay, true)?;
-        let _beatmap = Beatmap::parse(beatmap)?;
+        let mut replay = Replay::parse(replay, true)?;
+        let beatmap = ParserBeatmap::parse(beatmap)?;
 
-        Ok(replay)
+        if replay.beatmap_hash != beatmap.hash
+        {
+            return Err(ParserError::BeatmapHashMismatch(
+                replay.beatmap_hash,
+                beatmap.hash,
+            ));
+        }
+
+        let mut decoded_data = Vec::new();
+        lzma_rs::lzma_decompress(
+            &mut replay.replay_data.unwrap().as_slice(),
+            &mut decoded_data,
+        )?;
+        let replay_data = String::from_utf8(decoded_data)?;
+
+        todo!()
     }
 }

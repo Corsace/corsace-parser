@@ -43,8 +43,10 @@ pub enum ParserError
     InvalidButtons(u32),
     #[error("error parsing beatmap")]
     BeatmapParseError(#[from] rosu_pp::ParseError),
-    #[error("error parsing beatmap")]
+
+    #[error("error parsing libosu beatmap")]
     LibosuBeatmapParseError(#[from] libosu::prelude::BeatmapParseError),
+
     #[error("Beatmap and Replay hash mismatch, replay -> {0} beatmap -> {1}")]
     BeatmapHashMismatch(String, String),
 }

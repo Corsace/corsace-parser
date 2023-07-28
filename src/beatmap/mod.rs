@@ -1,10 +1,10 @@
-use std::io::Read;
+pub mod objects;
+pub mod parse;
 
-use crate::replay::ParserResult;
-use libosu::prelude::Color;
-use rosu_pp::{osu::OsuDifficultyAttributes, Beatmap, OsuPP};
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
+
+use self::objects::HitObject;
 #[derive(Default, Serialize, Deserialize, Debug, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct ParserDifficulty
@@ -27,6 +27,7 @@ pub struct ParserDifficulty
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct ParserBeatmap
 {
+    pub hash:              String,
     pub title:             String,
     pub artist:            String,
     pub tags:              Vec<String>,
@@ -41,96 +42,27 @@ pub struct ParserBeatmap
     pub slider_multiplier: f64,
     pub tick_rate:         f64,
     pub difficulty:        Option<ParserDifficulty>,
+    pub hit_objects:       Option<Vec<HitObject>>,
 }
-use libosu::prelude::Beatmap as libosuBeatmap;
-impl ParserBeatmap
+#[derive(Default, Serialize, Deserialize, Debug, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct Color
 {
-    pub fn parse<R: Read + Clone>(beatmap: &mut R) -> ParserResult<Self>
-    {
-        let parsed: ParserBeatmap = libosuBeatmap::parse(beatmap.clone())?.into();
-        let parsed = parsed.extend_from_rosu(Beatmap::parse(beatmap)?);
-        Ok(parsed.into())
-    }
-    pub fn parse_extra(beatmap: &mut [u8]) -> ParserResult<Self>
-    {
-        let parsed = Beatmap::parse(&mut beatmap.as_ref())?;
+    pub red: u8,
 
-        let diff_result = OsuPP::new(&parsed).calculate().difficulty;
+    pub green: u8,
 
-        let mut res = ParserBeatmap::from(parsed);
-        res.difficulty = Some(ParserDifficulty::from(diff_result));
-
-        Ok(res)
-    }
-    pub fn extend_from_rosu(self, value: Beatmap) -> Self
-    {
-        Self {
-            circles: value.n_circles,
-            sliders: value.n_sliders,
-            spinners: value.n_spinners,
-            ar: value.ar,
-            od: value.od,
-            cs: value.cs,
-            hp: value.hp,
-            slider_multiplier: value.slider_mult,
-            tick_rate: value.tick_rate,
-            difficulty: None,
-            ..self
-        }
-    }
+    pub blue: u8,
 }
 
-impl From<rosu_pp::Beatmap> for ParserBeatmap
+impl From<libosu::prelude::Color> for Color
 {
-    fn from(value: rosu_pp::Beatmap) -> Self
+    fn from(value: libosu::prelude::Color) -> Self
     {
         Self {
-            circles: value.n_circles,
-            sliders: value.n_sliders,
-            spinners: value.n_spinners,
-            ar: value.ar,
-            od: value.od,
-            cs: value.cs,
-            hp: value.hp,
-            slider_multiplier: value.slider_mult,
-            tick_rate: value.tick_rate,
-            difficulty: None,
-            ..Default::default()
-        }
-    }
-}
-impl From<OsuDifficultyAttributes> for ParserDifficulty
-{
-    fn from(value: OsuDifficultyAttributes) -> Self
-    {
-        Self {
-            aim_strain:          value.aim,
-            speed_strain:        value.speed,
-            flashlight_strain:   value.flashlight,
-            slider_strain_ratio: value.slider_factor,
-            speed_note_count:    value.speed_note_count,
-            ar:                  value.ar,
-            od:                  value.od,
-            hp:                  value.hp,
-            circles:             value.n_circles as _,
-            sliders:             value.n_sliders as _,
-            spinners:            value.n_spinners as _,
-            stars:               value.stars,
-            max_combo:           value.max_combo as _,
-        }
-    }
-}
-
-impl From<libosuBeatmap> for ParserBeatmap
-{
-    fn from(value: libosuBeatmap) -> Self
-    {
-        Self {
-            title: value.title,
-            artist: value.artist,
-            tags: value.tags,
-            combo_colors: value.colors,
-            ..Default::default()
+            red:   value.red,
+            green: value.green,
+            blue:  value.blue,
         }
     }
 }
