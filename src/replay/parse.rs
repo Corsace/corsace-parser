@@ -200,6 +200,16 @@ impl Replay
         )?;
         let replay_data = String::from_utf8(decoded_data)?;
 
+        let mut frames = replay_data
+            .split(",")
+            .filter(|entry| !entry.trim().is_empty())
+            .map(|entry| {
+                let mut data = entry.split("|");
+                // time
+                // x and y
+                // button bits
+            });
+
         todo!()
     }
 }

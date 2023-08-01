@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use tsify::Tsify;
 
+use crate::beatmap::objects::Pos2;
+
 use self::parse::LEB128Error;
 
 pub type ParserResult<T, E = ParserError> = std::result::Result<T, E>;
@@ -83,25 +85,23 @@ pub struct LifegraphData
 }
 mod integer_representation
 {
+    use bitflags::Flags;
     use serde::{self, Deserialize, Deserializer, Serialize, Serializer};
-
-    use crate::replay::Mods;
     type IntRep = u32;
-    type Flags = Mods;
 
-    pub fn serialize<S>(date: &Flags, serializer: S) -> Result<S::Ok, S::Error>
+    pub fn serialize<S, F: Flags<Bits = u32>>(flags: &F, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        date.bits().serialize(serializer)
+        flags.bits().serialize(serializer)
     }
 
-    pub fn deserialize<'de, D>(deserializer: D) -> Result<Flags, D::Error>
+    pub fn deserialize<'de, D, F: Flags<Bits = u32>>(deserializer: D) -> Result<F, D::Error>
     where
         D: Deserializer<'de>,
     {
         let raw: IntRep = IntRep::deserialize(deserializer)?;
-        Mods::from_bits(raw).ok_or(serde::de::Error::custom(format!(
+        Flags::from_bits(raw).ok_or(serde::de::Error::custom(format!(
             "Unexpected flags value {}",
             raw
         )))
@@ -111,7 +111,6 @@ mod integer_representation
 bitflags! {
 
     #[derive(Default, Serialize, Deserialize, Debug)]
-
     #[serde(transparent)]
 
     pub struct Mods: u32 {
@@ -146,6 +145,27 @@ bitflags! {
         const Key3 = 134217728;
         const Key2 = 268435456;
     }
+}
+bitflags! {
+    #[derive(Default, Serialize, Deserialize, Debug)]
+    #[serde(transparent)]
+    pub struct Buttons: u32 {
+        const M1 = 1;
+        const M2 = 2;
+        const K1 = 4;
+        const K2 = 8;
+        const SMOKE = 16;
+    }
+}
+#[derive(Default, Serialize, Deserialize, Debug, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct ReplayFrame
+{
+    pub time_ms:    i32,
+    pub cursor_pos: Pos2,
+    #[serde(with = "integer_representation")]
+    #[tsify(type = "number")]
+    pub buttons:    Buttons,
 }
 #[derive(Default, Serialize, Deserialize, Debug, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
