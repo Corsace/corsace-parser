@@ -57,7 +57,7 @@ struct Score {
 
 //^ return js object containing aim/speed pp and sr + total, need to figure out how to pass ar/od/cs/hp if there are any non-osu-mod modifications from the base map
 #[wasm_bindgen(js_name = parseBeatmapExtra)]
-pub fn parse_beatmap_extra(_score: &mut [u8], _beatmap: &mut [u8]) -> JsValue { todo!() }
+pub fn parse_beatmap_extra(_score: &mut [u8], _beatmap: &mut [u8]) { alert("not implemented") }
 
 #[wasm_bindgen]
 pub fn init_panic_hook() { utils::set_panic_hook(); }
