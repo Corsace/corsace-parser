@@ -4,7 +4,7 @@ use itertools::Itertools;
 use libosu::prelude::Beatmap as libosuBeatmap;
 use rosu_pp::{osu::OsuDifficultyAttributes, Beatmap, OsuPP};
 
-use crate::{console_log, replay::ParserResult};
+use crate::replay::ParserResult;
 
 use super::{objects::HitObject, Color, ParserBeatmap, ParserDifficulty};
 impl ParserBeatmap
@@ -12,9 +12,9 @@ impl ParserBeatmap
     pub fn parse<R: Read + Clone + std::convert::AsRef<[u8]>>(beatmap: &mut R)
         -> ParserResult<Self>
     {
-        let parsed: ParserBeatmap = libosuBeatmap::parse(beatmap.clone())?.into();
-        let mut parsed = parsed.extend_from_rosu(Beatmap::parse(beatmap.clone())?);
-        parsed.hash = String::from_utf8(md5::compute(&beatmap).to_vec())?;
+        let parsed: ParserBeatmap = libosuBeatmap::parse(beatmap.as_ref())?.into();
+        let mut parsed = parsed.extend_from_rosu(Beatmap::parse(beatmap.as_ref())?);
+        parsed.hash = String::from(format!("{:x}", md5::compute(beatmap)));
         Ok(parsed)
     }
     pub fn parse_extra(beatmap: &mut [u8]) -> ParserResult<Self>

@@ -1,11 +1,12 @@
 use std::io::Read;
 
-use super::{Judgements, LifegraphData, Mods, ParserResult, Replay};
+use super::{Judgements, LifegraphData, Mods, ParserResult, Replay, ReplayFrameData};
 use crate::{
-    beatmap::ParserBeatmap,
-    replay::{Mode, ParserError},
+    beatmap::{objects::Pos2, ParserBeatmap},
+    replay::{Buttons, Mode, ParserError, ReplayFrame},
 };
 use byteorder::{LittleEndian, ReadBytesExt};
+use itertools::Itertools;
 use rosu_pp::Beatmap;
 use thiserror::Error;
 
@@ -195,7 +196,7 @@ impl Replay
 
         let mut decoded_data = Vec::new();
         lzma_rs::lzma_decompress(
-            &mut replay.replay_data.unwrap().as_slice(),
+            &mut replay.replay_data.as_mut().unwrap().as_slice(),
             &mut decoded_data,
         )?;
         let replay_data = String::from_utf8(decoded_data)?;
@@ -205,11 +206,31 @@ impl Replay
             .filter(|entry| !entry.trim().is_empty())
             .map(|entry| {
                 let mut data = entry.split("|");
-                // time
-                // x and y
-                // button bits
-            });
+                let time_ms = data.next().unwrap().parse::<i32>()?;
+                let cursor_pos = Pos2 {
+                    x: data.next().unwrap().parse::<f32>()?,
+                    y: data.next().unwrap().parse::<f32>()?,
+                };
 
-        todo!()
+                let buttons = data.next().unwrap().parse::<u32>()?;
+                let buttons = if time_ms == -12345
+                {
+                    Buttons::from_bits_retain(buttons)
+                }
+                else
+                {
+                    Buttons::from_bits(buttons).ok_or(ParserError::InvalidButtons(buttons))?
+                };
+
+                Ok(ReplayFrame {
+                    time_ms,
+                    cursor_pos,
+                    buttons,
+                })
+            })
+            .collect::<ParserResult<Vec<_>>>()?;
+
+        replay.replay_frame_data = Some(ReplayFrameData { frames, seed: None });
+        Ok(replay)
     }
 }

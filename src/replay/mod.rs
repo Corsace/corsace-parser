@@ -169,23 +169,31 @@ pub struct ReplayFrame
 }
 #[derive(Default, Serialize, Deserialize, Debug, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct ReplayFrameData
+{
+    pub frames: Vec<ReplayFrame>,
+    pub seed:   Option<u32>,
+}
+#[derive(Default, Serialize, Deserialize, Debug, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct Replay
 {
-    pub mode:         Mode,
-    pub version:      u32,
-    pub beatmap_hash: String,
-    pub replay_hash:  String,
-    pub username:     String,
-    pub judgements:   Judgements,
-    pub score:        u32,
-    pub max_combo:    u16,
-    pub perfect:      bool,
+    pub mode:              Mode,
+    pub version:           u32,
+    pub beatmap_hash:      String,
+    pub replay_hash:       String,
+    pub username:          String,
+    pub judgements:        Judgements,
+    pub score:             u32,
+    pub max_combo:         u16,
+    pub perfect:           bool,
     #[serde(with = "integer_representation")]
     #[tsify(type = "number")]
-    pub mods:         Mods,
-    pub life_graph:   Vec<LifegraphData>,
+    pub mods:              Mods,
+    pub life_graph:        Vec<LifegraphData>,
     // measured in windows ticks
-    pub timestamp:    String,
-    pub replay_data:  Option<Vec<u8>>,
-    pub score_id:     Option<String>,
+    pub timestamp:         String,
+    pub replay_data:       Option<Vec<u8>>,
+    pub score_id:          Option<String>,
+    pub replay_frame_data: Option<ReplayFrameData>,
 }

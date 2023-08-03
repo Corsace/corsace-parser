@@ -8,6 +8,9 @@ beatmapInput.addEventListener("change", handleFileBeatmap, false);
 
 const replayExtrasEnabled = document.getElementById("replayextras");
 const beatmapExtrasEnabled = document.getElementById("beatmapextras");
+
+let beatmapdata = [];
+
 wasm.init_panic_hook();
 function handleFile(e) {
   const file = e.currentTarget.files[0];
@@ -21,9 +24,11 @@ function handleFile(e) {
     console.log("data size: " + data.length);
     console.log("calling parse_replay");
 
-    if (replayExtrasEnabled.checked) {
-      console.log(wasm.parseReplayExtra(data));
+    if (replayExtrasEnabled.checked && beatmapdata.length > 0) {
+      console.log("calling parse_replayextra");
+      console.log(wasm.parseReplayExtra(data, beatmapdata));
     } else {
+      console.log("calling parse_replay");
       console.log(wasm.parseReplay(data));
     }
   };
@@ -40,11 +45,13 @@ function handleFileBeatmap(e) {
     const data = new Uint8Array(evt.target.result);
 
     console.log("data size: " + data.length);
-    console.log("calling parse_beatmap");
 
     if (beatmapExtrasEnabled.checked) {
+      console.log("calling parse_beatmapextra");
       console.log(wasm.parseBeatmapExtra(data));
     } else {
+      console.log("calling parse_beatmap");
+      console.log(data);
       console.log(wasm.parseBeatmap(data));
     }
   };
