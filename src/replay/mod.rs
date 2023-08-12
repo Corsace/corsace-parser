@@ -63,7 +63,7 @@ pub enum Mode
     Catch = 2,
     Mania = 3,
 }
-#[derive(Default, Serialize, Deserialize, Debug, Tsify)]
+#[derive(Default, Serialize, Deserialize, Debug, Tsify, Clone, Copy)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 
 pub struct Judgements
@@ -161,11 +161,12 @@ bitflags! {
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct ReplayFrame
 {
-    pub time_ms:    i32,
-    pub cursor_pos: Pos2,
+    pub timestamp_ms:  i32,
+    pub time_since_ms: i32,
+    pub cursor_pos:    Pos2,
     #[serde(with = "integer_representation")]
     #[tsify(type = "number")]
-    pub buttons:    Buttons,
+    pub buttons:       Buttons,
 }
 #[derive(Default, Serialize, Deserialize, Debug, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]

@@ -4,6 +4,22 @@ use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 
+pub enum HitWindows
+{
+    Hit50  = 199,
+    Hit100 = 139,
+    Hit300 = 79,
+}
+
+impl From<HitWindows> for f32
+{
+    fn from(value: HitWindows) -> Self { (value as i32) as f32 + 0.5 }
+}
+
+impl HitWindows
+{
+    pub fn with_od(self, od: f32) -> f32 { f32::from(self) - (od * 10.0) }
+}
 #[derive(Default, Serialize, Deserialize, Debug, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct Pos2

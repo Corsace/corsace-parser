@@ -4,7 +4,7 @@ pub mod replay;
 
 mod utils;
 
-use beatmap::ParserBeatmap;
+use beatmap::{ParserBeatmap, ParserBeatmapAttributes, ParserDifficulty, ParserStrains};
 
 use wasm_bindgen::prelude::*;
 
@@ -43,21 +43,37 @@ pub fn parse_beatmap(beatmap: &mut [u8]) -> Result<ParserBeatmap, JsError>
     let parsed = ParserBeatmap::parse(&mut beatmap.as_ref())?;
     Ok(parsed)
 }
-
-/*
-struct Score {
-    pub mods: u32,
-    pub combo: usize,
-    pub Judgements: Judgements,
+#[derive(Copy, Clone)]
+#[wasm_bindgen]
+pub struct ParserScore
+{
+    pub mods:           u32,
+    pub combo:          usize,
+    pub judgements:     replay::Judgements,
     pub passed_objects: Option<usize>, //? for partial plays like fails but i dont think this is relevant in a tourney context
-    pub clock_rate: Option<f64>, //? if theres any rate changes in the pool this could be used to calc pp from the original map
-    pub accuracy: f64,
+    pub clock_rate:     Option<f64>, //? if theres any rate changes in the pool this could be used to calc pp from the original map
+    pub accuracy:       f64,
 }
-*/
 
 //^ return js object containing aim/speed pp and sr + total, need to figure out how to pass ar/od/cs/hp if there are any non-osu-mod modifications from the base map
 #[wasm_bindgen(js_name = parseBeatmapExtra)]
-pub fn parse_beatmap_extra(_score: &mut [u8], _beatmap: &mut [u8]) { alert("not implemented") }
+pub fn parse_beatmap_extra(
+    score: Option<ParserScore>, beatmap: &mut [u8],
+) -> Result<ParserBeatmapAttributes, JsError>
+{
+    Ok(ParserBeatmap::parse_extra(score, &mut beatmap.as_ref())?)
+}
+
+#[wasm_bindgen(js_name = parseBeatmapStrains)]
+pub fn parse_beatmap_strains(
+    beatmap: &mut [u8], mods: Option<u32>,
+) -> Result<ParserStrains, JsError>
+{
+    Ok(ParserBeatmap::parse_beatmap_strains(
+        &mut beatmap.as_ref(),
+        mods,
+    )?)
+}
 
 #[wasm_bindgen]
 pub fn init_panic_hook() { utils::set_panic_hook(); }

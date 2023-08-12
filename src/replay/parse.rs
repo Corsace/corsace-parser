@@ -200,20 +200,21 @@ impl Replay
             &mut decoded_data,
         )?;
         let replay_data = String::from_utf8(decoded_data)?;
+        let mut elapsed = 0i32;
 
         let mut frames = replay_data
             .split(",")
             .filter(|entry| !entry.trim().is_empty())
             .map(|entry| {
                 let mut data = entry.split("|");
-                let time_ms = data.next().unwrap().parse::<i32>()?;
+                let time_since_ms = data.next().unwrap().parse::<i32>()?;
                 let cursor_pos = Pos2 {
                     x: data.next().unwrap().parse::<f32>()?,
                     y: data.next().unwrap().parse::<f32>()?,
                 };
 
                 let buttons = data.next().unwrap().parse::<u32>()?;
-                let buttons = if time_ms == -12345
+                let buttons = if time_since_ms == -12345
                 {
                     Buttons::from_bits_retain(buttons)
                 }
@@ -221,16 +222,23 @@ impl Replay
                 {
                     Buttons::from_bits(buttons).ok_or(ParserError::InvalidButtons(buttons))?
                 };
+                elapsed += time_since_ms;
 
                 Ok(ReplayFrame {
-                    time_ms,
+                    timestamp_ms: elapsed,
+                    time_since_ms,
                     cursor_pos,
                     buttons,
                 })
             })
             .collect::<ParserResult<Vec<_>>>()?;
 
-        replay.replay_frame_data = Some(ReplayFrameData { frames, seed: None });
+        let seed = frames
+            .last()
+            .filter(|x| x.time_since_ms == -12345)
+            .and_then(|x| Some(x.buttons.bits()));
+
+        replay.replay_frame_data = Some(ReplayFrameData { frames, seed });
         Ok(replay)
     }
 }

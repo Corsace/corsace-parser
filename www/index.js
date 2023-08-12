@@ -22,7 +22,6 @@ function handleFile(e) {
     const data = new Uint8Array(evt.target.result);
 
     console.log("data size: " + data.length);
-    console.log("calling parse_replay");
 
     if (replayExtrasEnabled.checked && beatmapdata.length > 0) {
       console.log("calling parse_replayextra");
@@ -45,14 +44,14 @@ function handleFileBeatmap(e) {
     const data = new Uint8Array(evt.target.result);
 
     console.log("data size: " + data.length);
-
+    beatmapdata = data;
     if (beatmapExtrasEnabled.checked) {
       console.log("calling parse_beatmapextra");
       console.log(wasm.parseBeatmapExtra(data));
     } else {
       console.log("calling parse_beatmap");
-      console.log(data);
       console.log(wasm.parseBeatmap(data));
+      console.log(wasm.parseBeatmapStrains(data));
     }
   };
   reader.readAsArrayBuffer(file);

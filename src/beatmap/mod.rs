@@ -3,6 +3,7 @@ pub mod parse;
 
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
+use wasm_bindgen::prelude::wasm_bindgen;
 
 use self::objects::HitObject;
 #[derive(Default, Serialize, Deserialize, Debug, Tsify)]
@@ -22,6 +23,32 @@ pub struct ParserDifficulty
     pub spinners:            u32,
     pub stars:               f64,
     pub max_combo:           u32,
+}
+#[derive(Default, Serialize, Deserialize, Debug, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct ParserPerformance
+{
+    pub difficulty:           ParserDifficulty,
+    pub pp:                   f64,
+    pub pp_acc:               f64,
+    pub pp_aim:               f64,
+    pub pp_flashlight:        f64,
+    pub pp_speed:             f64,
+    pub effective_miss_count: f64,
+}
+#[derive(Default, Serialize, Deserialize, Debug, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct ParserStrains
+{
+    pub difficulty:  Option<Vec<ParserDifficulty>>,
+    pub performance: Option<Vec<ParserPerformance>>,
+}
+#[derive(Default, Serialize, Deserialize, Debug, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct ParserBeatmapAttributes
+{
+    pub difficulty:  Option<ParserDifficulty>,
+    pub performance: Option<ParserPerformance>,
 }
 #[derive(Default, Serialize, Deserialize, Debug, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]

@@ -2,11 +2,17 @@ use std::io::Read;
 
 use itertools::Itertools;
 use libosu::prelude::Beatmap as libosuBeatmap;
-use rosu_pp::{osu::OsuDifficultyAttributes, Beatmap, OsuPP};
+use rosu_pp::{
+    osu::{OsuDifficultyAttributes, OsuGradualDifficultyAttributes, OsuPerformanceAttributes},
+    Beatmap, OsuPP,
+};
 
-use crate::replay::ParserResult;
+use crate::{replay::ParserResult, ParserScore};
 
-use super::{objects::HitObject, Color, ParserBeatmap, ParserDifficulty};
+use super::{
+    objects::HitObject, Color, ParserBeatmap, ParserBeatmapAttributes, ParserDifficulty,
+    ParserPerformance, ParserStrains,
+};
 impl ParserBeatmap
 {
     pub fn parse<R: Read + Clone + std::convert::AsRef<[u8]>>(beatmap: &mut R)
@@ -17,16 +23,55 @@ impl ParserBeatmap
         parsed.hash = String::from(format!("{:x}", md5::compute(beatmap)));
         Ok(parsed)
     }
-    pub fn parse_extra(beatmap: &mut [u8]) -> ParserResult<Self>
+    pub fn parse_beatmap_strains<R: Read + Clone + std::convert::AsRef<[u8]>>(
+        beatmap: &mut R, mods: Option<u32>,
+    ) -> ParserResult<ParserStrains>
     {
-        let parsed = Beatmap::parse(&mut beatmap.as_ref())?;
+        let map = Beatmap::parse(&mut beatmap.as_ref())?;
+        let gradual_strains = OsuGradualDifficultyAttributes::new(&map, mods.unwrap_or(0))
+            .map(|x| ParserDifficulty::from(x))
+            .collect_vec();
+        Ok(ParserStrains {
+            difficulty:  Some(gradual_strains),
+            performance: None,
+        })
+    }
+    pub fn parse_extra<R: Read + Clone + std::convert::AsRef<[u8]>>(
+        score: Option<ParserScore>, beatmap: &mut R,
+    ) -> ParserResult<ParserBeatmapAttributes>
+    {
+        let mut map = Self::parse(&mut beatmap.as_ref())?;
+        let rosu_map = Beatmap::parse(&mut beatmap.as_ref())?;
 
-        let diff_result = OsuPP::new(&parsed).calculate().difficulty;
+        let diff_result = match score
+        {
+            Some(score) =>
+            {
+                OsuPP::new(&rosu_map)
+                    .mods(score.mods)
+                    .combo(score.combo)
+                    .n_misses(score.judgements.miss as _)
+                    .accuracy(score.accuracy)
+                    .calculate()
+                    .difficulty
+            }
+            None => OsuPP::new(&rosu_map).calculate().difficulty,
+        };
+        let perf_result = match score
+        {
+            Some(score) => OsuPP::new(&rosu_map)
+                .mods(score.mods)
+                .combo(score.combo)
+                .n_misses(score.judgements.miss as _)
+                .accuracy(score.accuracy)
+                .calculate(),
+            None => OsuPP::new(&rosu_map).calculate(),
+        };
 
-        let mut res = ParserBeatmap::from(parsed);
-        res.difficulty = Some(ParserDifficulty::from(diff_result));
-
-        Ok(res)
+        Ok(ParserBeatmapAttributes {
+            difficulty:  Some(diff_result.into()),
+            performance: Some(perf_result.into()),
+        })
     }
     pub fn extend_from_rosu(self, value: Beatmap) -> Self
     {
@@ -41,13 +86,6 @@ impl ParserBeatmap
             slider_multiplier: value.slider_mult,
             tick_rate: value.tick_rate,
             difficulty: None,
-            hit_objects: Some(
-                value
-                    .hit_objects
-                    .iter()
-                    .map(|x| HitObject::from(x.clone()))
-                    .collect_vec(),
-            ),
             ..self
         }
     }
@@ -68,6 +106,14 @@ impl From<rosu_pp::Beatmap> for ParserBeatmap
             slider_multiplier: value.slider_mult,
             tick_rate: value.tick_rate,
             difficulty: None,
+            hit_objects: Some(
+                value
+                    .hit_objects
+                    .iter()
+                    .map(|x| HitObject::from(x.clone()))
+                    .collect_vec(),
+            ),
+
             ..Default::default()
         }
     }
@@ -93,7 +139,21 @@ impl From<OsuDifficultyAttributes> for ParserDifficulty
         }
     }
 }
-
+impl From<OsuPerformanceAttributes> for ParserPerformance
+{
+    fn from(value: OsuPerformanceAttributes) -> Self
+    {
+        Self {
+            difficulty:           value.difficulty.into(),
+            pp:                   value.pp,
+            pp_acc:               value.pp_acc,
+            pp_aim:               value.pp_aim,
+            pp_flashlight:        value.pp_flashlight,
+            pp_speed:             value.pp_speed,
+            effective_miss_count: value.effective_miss_count,
+        }
+    }
+}
 impl From<libosuBeatmap> for ParserBeatmap
 {
     fn from(value: libosuBeatmap) -> Self
