@@ -1,6 +1,6 @@
 [package]
-name = "replay-parser"
-version = "0.1.0"
+name = "wasm-replay-parser-rs"
+version = "0.1.1"
 authors = ["riesha <seleneia@outlook.jp>"]
 edition = "2018"
 

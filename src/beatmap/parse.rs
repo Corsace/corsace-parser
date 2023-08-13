@@ -31,6 +31,7 @@ impl ParserBeatmap
         let gradual_strains = OsuGradualDifficultyAttributes::new(&map, mods.unwrap_or(0))
             .map(|x| ParserDifficulty::from(x))
             .collect_vec();
+
         Ok(ParserStrains {
             difficulty:  Some(gradual_strains),
             performance: None,
@@ -162,6 +163,7 @@ impl From<libosuBeatmap> for ParserBeatmap
             title: value.title,
             artist: value.artist,
             tags: value.tags,
+            diff_name: value.difficulty_name,
             combo_colors: value.colors.iter().map(|x| Color::from(*x)).collect_vec(),
             ..Default::default()
         }

@@ -57,6 +57,7 @@ pub struct ParserBeatmap
     pub hash:              String,
     pub title:             String,
     pub artist:            String,
+    pub diff_name:         String,
     pub tags:              Vec<String>,
     pub combo_colors:      Vec<Color>,
     pub circles:           u32,
