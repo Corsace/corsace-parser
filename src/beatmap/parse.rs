@@ -19,8 +19,13 @@ impl ParserBeatmap
         -> ParserResult<Self>
     {
         let parsed: ParserBeatmap = libosuBeatmap::parse(beatmap.as_ref())?.into();
-        let mut parsed = parsed.extend_from_rosu(Beatmap::parse(beatmap.as_ref())?);
+
+        let mut rosu_map = Beatmap::parse(beatmap.as_ref())?;
+        let mut parsed = parsed.extend_from_rosu(&rosu_map);
+
+        parsed.max_combo = OsuPP::new(&rosu_map).calculate().difficulty.max_combo as u32;
         parsed.hash = String::from(format!("{:x}", md5::compute(beatmap)));
+
         Ok(parsed)
     }
     pub fn parse_beatmap_strains<R: Read + Clone + std::convert::AsRef<[u8]>>(
@@ -74,7 +79,7 @@ impl ParserBeatmap
             performance: Some(perf_result.into()),
         })
     }
-    pub fn extend_from_rosu(self, value: Beatmap) -> Self
+    pub fn extend_from_rosu(self, value: &Beatmap) -> Self
     {
         Self {
             circles: value.n_circles,

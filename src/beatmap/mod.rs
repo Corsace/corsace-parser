@@ -60,6 +60,7 @@ pub struct ParserBeatmap
     pub diff_name:         String,
     pub tags:              Vec<String>,
     pub combo_colors:      Vec<Color>,
+    pub max_combo:         u32,
     pub circles:           u32,
     pub sliders:           u32,
     pub spinners:          u32,
