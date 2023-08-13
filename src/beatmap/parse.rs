@@ -3,15 +3,18 @@ use std::io::Read;
 use itertools::Itertools;
 use libosu::prelude::Beatmap as libosuBeatmap;
 use rosu_pp::{
-    osu::{OsuDifficultyAttributes, OsuGradualDifficultyAttributes, OsuPerformanceAttributes},
+    osu::{
+        OsuDifficultyAttributes, OsuGradualDifficultyAttributes, OsuGradualPerformanceAttributes,
+        OsuPerformanceAttributes, OsuScoreState,
+    },
     Beatmap, OsuPP,
 };
 
-use crate::{replay::ParserResult, ParserScore};
+use crate::{console_log, replay::ParserResult, ParserScore};
 
 use super::{
     objects::HitObject, Color, ParserBeatmap, ParserBeatmapAttributes, ParserDifficulty,
-    ParserPerformance, ParserStrains,
+    ParserPerformance, ParserScoreState, ParserStrains,
 };
 impl ParserBeatmap
 {
@@ -29,17 +32,38 @@ impl ParserBeatmap
         Ok(parsed)
     }
     pub fn parse_beatmap_strains<R: Read + Clone + std::convert::AsRef<[u8]>>(
-        beatmap: &mut R, mods: Option<u32>,
+        beatmap: &mut R, score_states: Option<Vec<ParserScoreState>>, mods: Option<u32>,
     ) -> ParserResult<ParserStrains>
     {
         let map = Beatmap::parse(&mut beatmap.as_ref())?;
+
         let gradual_strains = OsuGradualDifficultyAttributes::new(&map, mods.unwrap_or(0))
             .map(|x| ParserDifficulty::from(x))
             .collect_vec();
 
+        let gradual_perf = if let Some(states) = score_states
+        {
+            let mut perf = OsuGradualPerformanceAttributes::new(&map, mods.unwrap_or(0));
+            let mut perf_results: Vec<ParserPerformance> = Vec::new();
+            for state in states
+            {
+                let res = perf.process_next_object(state.into());
+                if res.is_none()
+                {
+                    break;
+                }
+                perf_results.push(res.unwrap().into());
+            }
+            Some(perf_results)
+        }
+        else
+        {
+            None
+        };
+
         Ok(ParserStrains {
             difficulty:  Some(gradual_strains),
-            performance: None,
+            performance: gradual_perf,
         })
     }
     pub fn parse_extra<R: Read + Clone + std::convert::AsRef<[u8]>>(
@@ -171,6 +195,20 @@ impl From<libosuBeatmap> for ParserBeatmap
             diff_name: value.difficulty_name,
             combo_colors: value.colors.iter().map(|x| Color::from(*x)).collect_vec(),
             ..Default::default()
+        }
+    }
+}
+
+impl From<ParserScoreState> for OsuScoreState
+{
+    fn from(value: ParserScoreState) -> Self
+    {
+        Self {
+            max_combo: value.max_combo as _,
+            n300:      value.n300 as _,
+            n100:      value.n100 as _,
+            n50:       value.n50 as _,
+            n_misses:  value.n_misses as _,
         }
     }
 }

@@ -75,6 +75,18 @@ pub struct ParserBeatmap
 }
 #[derive(Default, Serialize, Deserialize, Debug, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct ParserScoreState
+{
+    pub max_combo: u32,
+    pub n_geki:    u32,
+    pub n_katu:    u32,
+    pub n300:      u32,
+    pub n100:      u32,
+    pub n50:       u32,
+    pub n_misses:  u32,
+}
+#[derive(Default, Serialize, Deserialize, Debug, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct Color
 {
     pub red: u8,

@@ -34,6 +34,44 @@ function handleFile(e) {
   reader.readAsArrayBuffer(file);
 }
 
+let arrayOfObjects = [
+  {
+    max_combo: 0,
+    n_geki: 99,
+    n_katu: 88,
+    n300: 1,
+    n100: 1,
+    n50: 1,
+    n_misses: 1,
+  },
+  {
+    max_combo: 0,
+    n_geki: 99,
+    n_katu: 88,
+    n300: 1,
+    n100: 1,
+    n50: 1,
+    n_misses: 1,
+  },
+  {
+    max_combo: 0,
+    n_geki: 99,
+    n_katu: 88,
+    n300: 1,
+    n100: 1,
+    n50: 1,
+    n_misses: 1,
+  },
+  {
+    max_combo: 0,
+    n_geki: 99,
+    n_katu: 88,
+    n300: 1,
+    n100: 1,
+    n50: 1,
+    n_misses: 1,
+  },
+];
 function handleFileBeatmap(e) {
   const file = e.currentTarget.files[0];
   if (!(file instanceof Blob)) return;
@@ -51,7 +89,7 @@ function handleFileBeatmap(e) {
     } else {
       console.log("calling parse_beatmap");
       console.log(wasm.parseBeatmap(data));
-      console.log(wasm.parseBeatmapStrains(data));
+      console.log(wasm.parseBeatmapStrains(data, arrayOfObjects));
     }
   };
   reader.readAsArrayBuffer(file);

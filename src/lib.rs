@@ -8,7 +8,7 @@ use beatmap::{ParserBeatmap, ParserBeatmapAttributes, ParserDifficulty, ParserSt
 
 use wasm_bindgen::prelude::*;
 
-use crate::replay::Replay;
+use crate::{beatmap::ParserScoreState, replay::Replay};
 
 #[wasm_bindgen]
 extern "C" {
@@ -66,11 +66,23 @@ pub fn parse_beatmap_extra(
 
 #[wasm_bindgen(js_name = parseBeatmapStrains)]
 pub fn parse_beatmap_strains(
-    beatmap: &mut [u8], mods: Option<u32>,
+    beatmap: &mut [u8], score_states: Option<Vec<JsValue>>, mods: Option<u32>,
 ) -> Result<ParserStrains, JsError>
 {
     Ok(ParserBeatmap::parse_beatmap_strains(
         &mut beatmap.as_ref(),
+        match score_states
+        {
+            Some(states) =>
+            {
+                let scorestates: Vec<ParserScoreState> = states
+                    .iter()
+                    .map(|x| serde_wasm_bindgen::from_value(x.clone()).unwrap())
+                    .collect();
+                Some(scorestates)
+            }
+            None => None,
+        },
         mods,
     )?)
 }
