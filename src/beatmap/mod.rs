@@ -1,6 +1,7 @@
 pub mod objects;
 pub mod parse;
 
+use rosu_pp::beatmap::TimingPoint;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -61,6 +62,7 @@ pub struct ParserBeatmap
     pub tags:              Vec<String>,
     pub combo_colors:      Vec<Color>,
     pub max_combo:         u32,
+    pub bpm:               Option<u32>,
     pub circles:           u32,
     pub sliders:           u32,
     pub spinners:          u32,
@@ -70,8 +72,25 @@ pub struct ParserBeatmap
     pub hp:                f32,
     pub slider_multiplier: f64,
     pub tick_rate:         f64,
-    pub difficulty:        Option<ParserDifficulty>,
+    pub timing_points:     Option<Vec<ParserTimingPoint>>,
     pub hit_objects:       Option<Vec<HitObject>>,
+}
+#[derive(Default, Serialize, Deserialize, Debug, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct ParserTimingPoint
+{
+    pub time:        f64,
+    pub beat_length: f64,
+}
+impl From<&TimingPoint> for ParserTimingPoint
+{
+    fn from(value: &TimingPoint) -> Self
+    {
+        Self {
+            time:        value.time,
+            beat_length: value.beat_len,
+        }
+    }
 }
 #[derive(Default, Serialize, Deserialize, Debug, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]

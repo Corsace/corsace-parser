@@ -14,7 +14,7 @@ use crate::{console_log, replay::ParserResult, ParserScore};
 
 use super::{
     objects::HitObject, Color, ParserBeatmap, ParserBeatmapAttributes, ParserDifficulty,
-    ParserPerformance, ParserScoreState, ParserStrains,
+    ParserPerformance, ParserScoreState, ParserStrains, ParserTimingPoint,
 };
 impl ParserBeatmap
 {
@@ -31,6 +31,18 @@ impl ParserBeatmap
 
         Ok(parsed)
     }
+
+    pub fn parse_extra<R: Read + Clone + std::convert::AsRef<[u8]>>(
+        beatmap: &mut R,
+    ) -> ParserResult<Self>
+    {
+        let map: ParserBeatmap = Beatmap::parse(beatmap.as_ref())?.into();
+        let mut map = map.extend_from_libosu(&libosuBeatmap::parse(beatmap.as_ref())?);
+        map.hash = String::from(format!("{:x}", md5::compute(beatmap)));
+        // properly extend the data cuz its missing so much shit
+        Ok(map)
+    }
+
     pub fn parse_beatmap_strains<R: Read + Clone + std::convert::AsRef<[u8]>>(
         beatmap: &mut R, score_states: Option<Vec<ParserScoreState>>, mods: Option<u32>,
     ) -> ParserResult<ParserStrains>
@@ -66,11 +78,11 @@ impl ParserBeatmap
             performance: gradual_perf,
         })
     }
-    pub fn parse_extra<R: Read + Clone + std::convert::AsRef<[u8]>>(
+
+    pub fn parse_beatmap_attributes<R: Read + Clone + std::convert::AsRef<[u8]>>(
         score: Option<ParserScore>, beatmap: &mut R,
     ) -> ParserResult<ParserBeatmapAttributes>
     {
-        let mut map = Self::parse(&mut beatmap.as_ref())?;
         let rosu_map = Beatmap::parse(&mut beatmap.as_ref())?;
 
         let diff_result = match score
@@ -103,6 +115,7 @@ impl ParserBeatmap
             performance: Some(perf_result.into()),
         })
     }
+
     pub fn extend_from_rosu(self, value: &Beatmap) -> Self
     {
         Self {
@@ -115,7 +128,25 @@ impl ParserBeatmap
             hp: value.hp,
             slider_multiplier: value.slider_mult,
             tick_rate: value.tick_rate,
-            difficulty: None,
+            timing_points: Some(
+                value
+                    .timing_points
+                    .iter()
+                    .map(ParserTimingPoint::from)
+                    .collect_vec(),
+            ),
+            ..self
+        }
+    }
+    pub fn extend_from_libosu(self, value: &libosuBeatmap) -> Self
+    {
+        Self {
+            title: value.title.clone(),
+            artist: value.artist.clone(),
+            tags: value.tags.clone(),
+            diff_name: value.difficulty_name.clone(),
+            combo_colors: value.colors.iter().map(|x| Color::from(*x)).collect_vec(),
+            max_combo: value.max_combo(),
             ..self
         }
     }
@@ -135,7 +166,13 @@ impl From<rosu_pp::Beatmap> for ParserBeatmap
             hp: value.hp,
             slider_multiplier: value.slider_mult,
             tick_rate: value.tick_rate,
-            difficulty: None,
+            timing_points: Some(
+                value
+                    .timing_points
+                    .iter()
+                    .map(ParserTimingPoint::from)
+                    .collect_vec(),
+            ),
             hit_objects: Some(
                 value
                     .hit_objects

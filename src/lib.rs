@@ -57,11 +57,21 @@ pub struct ParserScore
 
 //^ return js object containing aim/speed pp and sr + total, need to figure out how to pass ar/od/cs/hp if there are any non-osu-mod modifications from the base map
 #[wasm_bindgen(js_name = parseBeatmapExtra)]
-pub fn parse_beatmap_extra(
+pub fn parse_beatmap_extra(beatmap: &mut [u8]) -> Result<ParserBeatmap, JsError>
+{
+    let parsed = ParserBeatmap::parse_extra(&mut beatmap.as_ref())?;
+    Ok(parsed)
+}
+
+#[wasm_bindgen(js_name = parseBeatmapAttributes)]
+pub fn parse_beatmap_attributes(
     score: Option<ParserScore>, beatmap: &mut [u8],
 ) -> Result<ParserBeatmapAttributes, JsError>
 {
-    Ok(ParserBeatmap::parse_extra(score, &mut beatmap.as_ref())?)
+    Ok(ParserBeatmap::parse_beatmap_attributes(
+        score,
+        &mut beatmap.as_ref(),
+    )?)
 }
 
 #[wasm_bindgen(js_name = parseBeatmapStrains)]
