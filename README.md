@@ -5,7 +5,7 @@ wip
 </div>
 
 # Build
-`wasm-pack build <--debug>`
+`wasm-pack build --target nodejs <--debug>`
 
 # Test
 `cd www && npm run start`
