@@ -36,8 +36,11 @@ impl ParserBeatmap
         beatmap: &mut R,
     ) -> ParserResult<Self>
     {
-        let map: ParserBeatmap = Beatmap::parse(beatmap.as_ref())?.into();
-        let mut map = map.extend_from_libosu(&libosuBeatmap::parse(beatmap.as_ref())?);
+        let rosu_map = Beatmap::parse(beatmap.as_ref())?;
+
+        let mut map = ParserBeatmap::from(rosu_map.clone())
+            .extend_from_libosu(&libosuBeatmap::parse(beatmap.as_ref())?);
+        map.max_combo = OsuPP::new(&rosu_map).calculate().difficulty.max_combo as u32;
         map.hash = String::from(format!("{:x}", md5::compute(beatmap)));
         // properly extend the data cuz its missing so much shit
         Ok(map)
@@ -146,7 +149,7 @@ impl ParserBeatmap
             tags: value.tags.clone(),
             diff_name: value.difficulty_name.clone(),
             combo_colors: value.colors.iter().map(|x| Color::from(*x)).collect_vec(),
-            max_combo: value.max_combo(),
+
             ..self
         }
     }
