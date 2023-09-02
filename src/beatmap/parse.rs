@@ -28,7 +28,7 @@ impl ParserBeatmap
 
         parsed.max_combo = OsuPP::new(&rosu_map).calculate().difficulty.max_combo as u32;
         parsed.hash = String::from(format!("{:x}", md5::compute(beatmap)));
-
+        parsed.bpm = parsed.get_bpm();
         Ok(parsed)
     }
 
@@ -42,6 +42,7 @@ impl ParserBeatmap
             .extend_from_libosu(&libosuBeatmap::parse(beatmap.as_ref())?);
         map.max_combo = OsuPP::new(&rosu_map).calculate().difficulty.max_combo as u32;
         map.hash = String::from(format!("{:x}", md5::compute(beatmap)));
+        map.bpm = map.get_bpm();
         // properly extend the data cuz its missing so much shit
         Ok(map)
     }
@@ -151,6 +152,24 @@ impl ParserBeatmap
             combo_colors: value.colors.iter().map(|x| Color::from(*x)).collect_vec(),
 
             ..self
+        }
+    }
+    pub fn get_bpm(&self) -> Option<f32>
+    {
+        match &self.timing_points
+        {
+            Some(timing_points) =>
+            {
+                if timing_points.len() == 1
+                {
+                    Some(60000.0 / timing_points.first().unwrap().beat_length as f32)
+                }
+                else
+                {
+                    None
+                }
+            }
+            None => None,
         }
     }
 }
