@@ -160,13 +160,42 @@ impl ParserBeatmap
         {
             Some(timing_points) =>
             {
-                if timing_points.len() == 1
+                if timing_points.len() == 1 || self.hit_objects.is_none()
                 {
                     Some(60000.0 / timing_points.first().unwrap().beat_length as f32)
                 }
                 else
                 {
-                    None
+                    let bpm_points = timing_points
+                        .iter()
+                        .enumerate()
+                        .map(|(i, point)| {
+                            (
+                                60000.0 / point.beat_length as f32,
+                                if i < timing_points.len() - 1
+                                {
+                                    timing_points[i + 1].time - point.time
+                                }
+                                else
+                                {
+                                    console_log!("in the else cause");
+                                    self.hit_objects
+                                        .as_ref()
+                                        .unwrap()
+                                        .last()
+                                        .unwrap()
+                                        .start_time
+                                        - point.time
+                                } as f32,
+                            )
+                        })
+                        .collect_vec();
+                    let bpm: f32 = bpm_points
+                        .iter()
+                        .fold(0.0, |acc, point| acc + point.1 * point.0)
+                        / bpm_points.iter().fold(0.0, |acc, point| acc + point.1);
+
+                    Some(bpm)
                 }
             }
             None => None,

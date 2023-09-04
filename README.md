@@ -9,3 +9,6 @@ wip
 
 # Test
 `cd www && npm run start`
+
+# Docs
+`cargo doc`
