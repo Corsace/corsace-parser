@@ -89,31 +89,47 @@ impl ParserBeatmap
     {
         let rosu_map = Beatmap::parse(&mut beatmap.as_ref())?;
 
-        let diff_result = match score
+        let perf_result = match score
         {
             Some(score) =>
             {
-                OsuPP::new(&rosu_map)
-                    .mods(score.mods)
-                    .combo(score.combo)
-                    .n_misses(score.judgements.miss as _)
-                    .accuracy(score.accuracy)
-                    .calculate()
-                    .difficulty
+                let mut osupp = OsuPP::new(&rosu_map);
+                if let Some(mods) = score.mods
+                {
+                    osupp = osupp.mods(mods);
+                }
+                if let Some(combo) = score.combo
+                {
+                    osupp = osupp.combo(combo);
+                }
+                if let Some(judgements) = score.judgements
+                {
+                    if let Some(count_300) = judgements.count_300
+                    {
+                        osupp = osupp.n300(count_300 as _);
+                    }
+                    if let Some(count_100) = judgements.count_100
+                    {
+                        osupp = osupp.n100(count_100 as _);
+                    }
+                    if let Some(count_50) = judgements.count_50
+                    {
+                        osupp = osupp.n50(count_50 as _);
+                    }
+                    if let Some(miss) = judgements.miss
+                    {
+                        osupp = osupp.n_misses(miss as _);
+                    }
+                }
+                if let Some(accuracy) = score.accuracy
+                {
+                    osupp = osupp.accuracy(accuracy)
+                }
+                osupp.calculate()
             }
-            None => OsuPP::new(&rosu_map).calculate().difficulty,
-        };
-        let perf_result = match score
-        {
-            Some(score) => OsuPP::new(&rosu_map)
-                .mods(score.mods)
-                .combo(score.combo)
-                .n_misses(score.judgements.miss as _)
-                .accuracy(score.accuracy)
-                .calculate(),
             None => OsuPP::new(&rosu_map).calculate(),
         };
-
+        let diff_result = perf_result.clone().difficulty;
         Ok(ParserBeatmapAttributes {
             difficulty:  Some(diff_result.into()),
             performance: Some(perf_result.into()),

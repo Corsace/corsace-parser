@@ -79,12 +79,12 @@ pub fn parse_beatmap(beatmap: &mut [u8]) -> Result<ParserBeatmap, JsError>
 #[wasm_bindgen]
 pub struct ParserScore
 {
-    pub mods:           u32,
-    pub combo:          usize,
-    pub judgements:     replay::Judgements,
+    pub mods:           Option<u32>,
+    pub combo:          Option<usize>,
+    pub judgements:     Option<replay::Judgements>,
     pub passed_objects: Option<usize>, //? for partial plays like fails but i dont think this is relevant in a tourney context
     pub clock_rate:     Option<f64>, //? if theres any rate changes in the pool this could be used to calc pp from the original map
-    pub accuracy:       f64,
+    pub accuracy:       Option<f64>,
 }
 /// Parses the provided beatmap for advanced information.
 ///

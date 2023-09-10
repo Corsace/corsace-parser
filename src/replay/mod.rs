@@ -68,12 +68,12 @@ pub enum Mode
 
 pub struct Judgements
 {
-    pub count_300:  u16,
-    pub count_100:  u16,
-    pub count_50:   u16,
-    pub count_geki: u16,
-    pub count_katu: u16,
-    pub miss:       u16,
+    pub count_300:  Option<u16>,
+    pub count_100:  Option<u16>,
+    pub count_50:   Option<u16>,
+    pub count_geki: Option<u16>,
+    pub count_katu: Option<u16>,
+    pub miss:       Option<u16>,
 }
 #[derive(Default, Serialize, Deserialize, Debug, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
