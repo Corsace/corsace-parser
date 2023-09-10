@@ -11,4 +11,4 @@ wip
 `cd www && npm run start`
 
 # Docs
-`cargo doc`
+`cargo doc --no-deps`
