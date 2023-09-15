@@ -10,7 +10,7 @@ use rosu_pp::{
     Beatmap, OsuPP,
 };
 
-use crate::{console_log, replay::ParserResult, ParserScore};
+use crate::{replay::ParserResult, ParserScore};
 
 use super::{
     objects::HitObject, Color, ParserBeatmap, ParserBeatmapAttributes, ParserBreak,
@@ -171,6 +171,7 @@ impl ParserBeatmap
             ..self
         }
     }
+    pub fn get_drain_time(&self) -> Option<u32> { todo!() }
     pub fn get_bpm(&self) -> Option<f32>
     {
         match &self.timing_points
@@ -195,7 +196,6 @@ impl ParserBeatmap
                                 }
                                 else
                                 {
-                                    console_log!("in the else cause");
                                     self.hit_objects
                                         .as_ref()
                                         .unwrap()
