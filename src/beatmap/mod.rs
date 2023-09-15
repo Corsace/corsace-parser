@@ -74,7 +74,28 @@ pub struct ParserBeatmap
     pub tick_rate:         f64,
     pub timing_points:     Option<Vec<ParserTimingPoint>>,
     pub hit_objects:       Option<Vec<HitObject>>,
+    pub breaks:            Option<Vec<ParserBreak>>,
 }
+
+#[derive(Default, Serialize, Deserialize, Debug, Tsify)]
+#[tsify(into_wasm_abi, from_wasm_abi)]
+pub struct ParserBreak
+{
+    pub start_time: f64,
+    pub end_time:   f64,
+}
+
+impl From<&rosu_pp::beatmap::Break> for ParserBreak
+{
+    fn from(value: &rosu_pp::beatmap::Break) -> Self
+    {
+        Self {
+            start_time: value.start_time,
+            end_time:   value.end_time,
+        }
+    }
+}
+
 #[derive(Default, Serialize, Deserialize, Debug, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct ParserTimingPoint

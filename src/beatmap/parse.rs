@@ -13,8 +13,8 @@ use rosu_pp::{
 use crate::{console_log, replay::ParserResult, ParserScore};
 
 use super::{
-    objects::HitObject, Color, ParserBeatmap, ParserBeatmapAttributes, ParserDifficulty,
-    ParserPerformance, ParserScoreState, ParserStrains, ParserTimingPoint,
+    objects::HitObject, Color, ParserBeatmap, ParserBeatmapAttributes, ParserBreak,
+    ParserDifficulty, ParserPerformance, ParserScoreState, ParserStrains, ParserTimingPoint,
 };
 impl ParserBeatmap
 {
@@ -155,6 +155,7 @@ impl ParserBeatmap
                     .map(ParserTimingPoint::from)
                     .collect_vec(),
             ),
+            breaks: Some(value.breaks.iter().map(ParserBreak::from).collect_vec()),
             ..self
         }
     }
