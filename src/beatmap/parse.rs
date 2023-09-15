@@ -23,7 +23,7 @@ impl ParserBeatmap
     {
         let parsed: ParserBeatmap = libosuBeatmap::parse(beatmap.as_ref())?.into();
 
-        let mut rosu_map = Beatmap::parse(beatmap.as_ref())?;
+        let rosu_map = Beatmap::parse(beatmap.as_ref())?;
         let mut parsed = parsed.extend_from_rosu(&rosu_map);
 
         parsed.max_combo = OsuPP::new(&rosu_map).calculate().difficulty.max_combo as u32;

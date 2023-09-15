@@ -6,8 +6,8 @@ use crate::{
     replay::{Buttons, Mode, ParserError, ReplayFrame},
 };
 use byteorder::{LittleEndian, ReadBytesExt};
-use itertools::Itertools;
-use rosu_pp::Beatmap;
+
+
 use thiserror::Error;
 
 pub type LEBResult<T, E = LEB128Error> = std::result::Result<T, E>;
@@ -202,7 +202,7 @@ impl Replay
         let replay_data = String::from_utf8(decoded_data)?;
         let mut elapsed = 0i32;
 
-        let mut frames = replay_data
+        let frames = replay_data
             .split(",")
             .filter(|entry| !entry.trim().is_empty())
             .map(|entry| {

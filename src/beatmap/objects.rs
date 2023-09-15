@@ -1,5 +1,3 @@
-use std::default;
-
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use tsify::Tsify;

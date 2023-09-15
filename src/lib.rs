@@ -7,7 +7,7 @@ pub mod replay;
 mod utils;
 
 use beatmap::{
-    objects::HitObject, ParserBeatmap, ParserBeatmapAttributes, ParserDifficulty, ParserStrains,
+    ParserBeatmap, ParserBeatmapAttributes, ParserStrains,
 };
 use wasm_bindgen::prelude::*;
 
