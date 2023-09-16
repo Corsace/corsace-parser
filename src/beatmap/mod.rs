@@ -61,6 +61,8 @@ pub struct ParserBeatmap
     pub diff_name:         String,
     pub tags:              Vec<String>,
     pub combo_colors:      Vec<Color>,
+    pub map_length:        u32,
+    pub drain_time:        u32,
     pub max_combo:         u32,
     pub bpm:               Option<f32>,
     pub circles:           u32,
@@ -81,8 +83,8 @@ pub struct ParserBeatmap
 #[tsify(into_wasm_abi, from_wasm_abi)]
 pub struct ParserBreak
 {
-    pub start_time: f64,
-    pub end_time:   f64,
+    pub start_time: u32,
+    pub end_time:   u32,
 }
 
 impl From<&rosu_pp::beatmap::Break> for ParserBreak
@@ -90,8 +92,8 @@ impl From<&rosu_pp::beatmap::Break> for ParserBreak
     fn from(value: &rosu_pp::beatmap::Break) -> Self
     {
         Self {
-            start_time: value.start_time,
-            end_time:   value.end_time,
+            start_time: value.start_time as _,
+            end_time:   value.end_time as _,
         }
     }
 }

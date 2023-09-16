@@ -34,6 +34,8 @@ pub enum ParserError
 
     #[error("missing field in life graph")]
     LifeGraphMissing,
+    #[error("missing hitobjects in parsed beatmap")]
+    HitobjectsMissing,
 
     #[error("unexpected mods: {0}")]
     UnexpectedMods(u32),

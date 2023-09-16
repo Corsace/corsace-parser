@@ -10,7 +10,10 @@ use rosu_pp::{
     Beatmap, OsuPP,
 };
 
-use crate::{replay::ParserResult, ParserScore};
+use crate::{
+    replay::{ParserError, ParserResult},
+    ParserScore,
+};
 
 use super::{
     objects::HitObject, Color, ParserBeatmap, ParserBeatmapAttributes, ParserBreak,
@@ -21,29 +24,24 @@ impl ParserBeatmap
     pub fn parse<R: Read + Clone + std::convert::AsRef<[u8]>>(beatmap: &mut R)
         -> ParserResult<Self>
     {
-        let parsed: ParserBeatmap = libosuBeatmap::parse(beatmap.as_ref())?.into();
-
-        let rosu_map = Beatmap::parse(beatmap.as_ref())?;
-        let mut parsed = parsed.extend_from_rosu(&rosu_map);
-
-        parsed.max_combo = OsuPP::new(&rosu_map).calculate().difficulty.max_combo as u32;
-        parsed.hash = String::from(format!("{:x}", md5::compute(beatmap)));
-        parsed.bpm = parsed.get_bpm();
-        Ok(parsed)
-    }
-
-    pub fn parse_extra<R: Read + Clone + std::convert::AsRef<[u8]>>(
-        beatmap: &mut R,
-    ) -> ParserResult<Self>
-    {
         let rosu_map = Beatmap::parse(beatmap.as_ref())?;
 
         let mut map = ParserBeatmap::from(rosu_map.clone())
             .extend_from_libosu(&libosuBeatmap::parse(beatmap.as_ref())?);
+
         map.max_combo = OsuPP::new(&rosu_map).calculate().difficulty.max_combo as u32;
         map.hash = String::from(format!("{:x}", md5::compute(beatmap)));
         map.bpm = map.get_bpm();
-        // properly extend the data cuz its missing so much shit
+
+        map.map_length = map
+            .hit_objects
+            .as_ref()
+            .ok_or(ParserError::HitobjectsMissing)?
+            .last()
+            .unwrap()
+            .start_time as u32;
+        map.drain_time = map.get_drain_time();
+
         Ok(map)
     }
 
@@ -171,7 +169,20 @@ impl ParserBeatmap
             ..self
         }
     }
-    pub fn get_drain_time(&self) -> Option<u32> { todo!() }
+    pub fn get_drain_time(&self) -> u32
+    {
+        if let Some(breaks) = &self.breaks
+        {
+            let breaktime = breaks
+                .iter()
+                .fold(0, |acc, point| acc + (point.end_time - point.start_time));
+            self.map_length - breaktime
+        }
+        else
+        {
+            0
+        }
+    }
     pub fn get_bpm(&self) -> Option<f32>
     {
         match &self.timing_points
@@ -248,7 +259,7 @@ impl From<rosu_pp::Beatmap> for ParserBeatmap
                     .map(|x| HitObject::from(x.clone()))
                     .collect_vec(),
             ),
-
+            breaks: Some(value.breaks.iter().map(ParserBreak::from).collect_vec()),
             ..Default::default()
         }
     }

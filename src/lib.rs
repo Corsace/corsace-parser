@@ -1,17 +1,17 @@
 //! wasm osu replay and beatmap parser
-
+#![feature(test)]
 pub mod beatmap;
 pub mod macros;
 pub mod replay;
 
 mod utils;
 
-use beatmap::{
-    ParserBeatmap, ParserBeatmapAttributes, ParserStrains,
-};
+use beatmap::{ParserBeatmap, ParserBeatmapAttributes, ParserStrains};
 use wasm_bindgen::prelude::*;
 
 use crate::{beatmap::ParserScoreState, replay::Replay};
+
+extern crate test;
 
 #[wasm_bindgen]
 extern "C" {
@@ -58,23 +58,6 @@ pub fn parse_replay_extra(replay: &mut [u8], beatmap: &mut [u8]) -> Result<Repla
     Ok(extras)
 }
 
-/// Parses the provided beatmap for basic information.
-/// # Example
-///
-/// ```
-///  const reader = new FileReader();
-///
-///  reader.onloadend = (evt) => {
-///    const beatmapdata = new Uint8Array(evt.target.result);
-///    console.log(wasm.parseBeatmap(beatmapdata));
-/// }
-/// ```
-#[wasm_bindgen(js_name = parseBeatmap)]
-pub fn parse_beatmap(beatmap: &mut [u8]) -> Result<ParserBeatmap, JsError>
-{
-    let parsed = ParserBeatmap::parse(&mut beatmap.as_ref())?;
-    Ok(parsed)
-}
 #[derive(Copy, Clone)]
 #[wasm_bindgen]
 pub struct ParserScore
@@ -86,9 +69,8 @@ pub struct ParserScore
     pub clock_rate:     Option<f64>, //? if theres any rate changes in the pool this could be used to calc pp from the original map
     pub accuracy:       Option<f64>,
 }
-/// Parses the provided beatmap for advanced information.
+/// Parses the provided beatmap
 ///
-/// Includes everything from [`parse_beatmap`] plus an array of all [`HitObject`].
 /// # Example
 ///
 /// ```
@@ -99,10 +81,10 @@ pub struct ParserScore
 ///    console.log(wasm.parseBeatmapExtra(beatmapdata));
 /// }
 /// ```
-#[wasm_bindgen(js_name = parseBeatmapExtra)]
-pub fn parse_beatmap_extra(beatmap: &mut [u8]) -> Result<ParserBeatmap, JsError>
+#[wasm_bindgen(js_name = parseBeatmap)]
+pub fn parse_beatmap(beatmap: &mut [u8]) -> Result<ParserBeatmap, JsError>
 {
-    let parsed = ParserBeatmap::parse_extra(&mut beatmap.as_ref())?;
+    let parsed = ParserBeatmap::parse(&mut beatmap.as_ref())?;
     Ok(parsed)
 }
 /// Parses the provided beatmap and calculates difficulty and performance attributes.
@@ -166,3 +148,19 @@ pub fn parse_beatmap_strains(
 /// Call on init for better panic reports when debugging, not required.
 #[wasm_bindgen]
 pub fn init_panic_hook() { utils::set_panic_hook(); }
+
+#[cfg(test)]
+mod tests
+{
+    use super::*;
+    use test::Bencher;
+
+    #[bench]
+    fn bench_parse_beatmap(b: &mut Bencher)
+    {
+        b.iter(|| {
+            let mut beatmap = include_bytes!("../beatmap2.osu").to_owned();
+            parse_beatmap(&mut beatmap)
+        });
+    }
+}
