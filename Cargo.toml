@@ -20,7 +20,7 @@ serde_json = { version = "1.0.103"}
 bitflags = { version = "2.3.3", features = ["serde"] }
 thiserror = "1.0.43"
 byteorder = "1.4.3"
-itertools = "0.11.0"
+itertools = "0.12.0"
 rosu-pp = "0.9.4"
 tsify = { version = "0.4.5", features = ["js"] }
 libosu = { version = "0.0.28", features = ["serde"] }
