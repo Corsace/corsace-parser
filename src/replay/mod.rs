@@ -12,8 +12,7 @@ pub type ParserResult<T, E = ParserError> = std::result::Result<T, E>;
 
 #[non_exhaustive]
 #[derive(Debug, Error)]
-pub enum ParserError
-{
+pub enum ParserError {
     #[error("error creating lzma decoder: {0}")]
     LzmaCreate(#[from] lzma_rs::error::Error),
 
@@ -45,10 +44,10 @@ pub enum ParserError
 
     #[error("invalid buttons: {0}")]
     InvalidButtons(u32),
-    #[error("error parsing beatmap")]
+    #[error("error parsing beatmap: {0}")]
     BeatmapParseError(#[from] rosu_pp::ParseError),
 
-    #[error("error parsing libosu beatmap")]
+    #[error("error parsing libosu beatmap: {0}")]
     LibosuBeatmapParseError(#[from] libosu::prelude::BeatmapParseError),
 
     #[error("Beatmap and Replay hash mismatch, replay -> {0} beatmap -> {1}")]
@@ -57,10 +56,9 @@ pub enum ParserError
 
 #[derive(Default, Serialize, Deserialize, Debug, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
-pub enum Mode
-{
+pub enum Mode {
     #[default]
-    Osu   = 0,
+    Osu = 0,
     Taiko = 1,
     Catch = 2,
     Mania = 3,
@@ -68,25 +66,22 @@ pub enum Mode
 #[derive(Default, Serialize, Deserialize, Debug, Tsify, Clone, Copy)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
 
-pub struct Judgements
-{
-    pub count_300:  Option<u16>,
-    pub count_100:  Option<u16>,
-    pub count_50:   Option<u16>,
+pub struct Judgements {
+    pub count_300: Option<u16>,
+    pub count_100: Option<u16>,
+    pub count_50: Option<u16>,
     pub count_geki: Option<u16>,
     pub count_katu: Option<u16>,
-    pub miss:       Option<u16>,
+    pub miss: Option<u16>,
 }
 #[derive(Default, Serialize, Deserialize, Debug, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
-pub struct LifegraphData
-{
+pub struct LifegraphData {
     //time in ms
-    pub time:       i32,
+    pub time: i32,
     pub life_value: f64,
 }
-mod integer_representation
-{
+mod integer_representation {
     use bitflags::Flags;
     use serde::{self, Deserialize, Deserializer, Serialize, Serializer};
     type IntRep = u32;
@@ -161,42 +156,39 @@ bitflags! {
 }
 #[derive(Default, Serialize, Deserialize, Debug, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
-pub struct ReplayFrame
-{
-    pub timestamp_ms:  i32,
+pub struct ReplayFrame {
+    pub timestamp_ms: i32,
     pub time_since_ms: i32,
-    pub cursor_pos:    Pos2,
+    pub cursor_pos: Pos2,
     #[serde(with = "integer_representation")]
     #[tsify(type = "number")]
-    pub buttons:       Buttons,
+    pub buttons: Buttons,
 }
 #[derive(Default, Serialize, Deserialize, Debug, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
-pub struct ReplayFrameData
-{
+pub struct ReplayFrameData {
     pub frames: Vec<ReplayFrame>,
-    pub seed:   Option<u32>,
+    pub seed: Option<u32>,
 }
 #[derive(Default, Serialize, Deserialize, Debug, Tsify)]
 #[tsify(into_wasm_abi, from_wasm_abi)]
-pub struct Replay
-{
-    pub mode:              Mode,
-    pub version:           u32,
-    pub beatmap_hash:      String,
-    pub replay_hash:       String,
-    pub username:          String,
-    pub judgements:        Judgements,
-    pub score:             u32,
-    pub max_combo:         u16,
-    pub perfect:           bool,
+pub struct Replay {
+    pub mode: Mode,
+    pub version: u32,
+    pub beatmap_hash: String,
+    pub replay_hash: String,
+    pub username: String,
+    pub judgements: Judgements,
+    pub score: u32,
+    pub max_combo: u16,
+    pub perfect: bool,
     #[serde(with = "integer_representation")]
     #[tsify(type = "number")]
-    pub mods:              Mods,
-    pub life_graph:        Vec<LifegraphData>,
+    pub mods: Mods,
+    pub life_graph: Vec<LifegraphData>,
     // measured in windows ticks
-    pub timestamp:         String,
-    pub replay_data:       Option<Vec<u8>>,
-    pub score_id:          Option<String>,
+    pub timestamp: String,
+    pub replay_data: Option<Vec<u8>>,
+    pub score_id: Option<String>,
     pub replay_frame_data: Option<ReplayFrameData>,
 }
