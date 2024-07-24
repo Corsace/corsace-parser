@@ -23,7 +23,7 @@ byteorder = "1.4.3"
 itertools = "0.11.0"
 rosu-pp = "0.9.4"
 tsify = { version = "0.4.5", features = ["js"] }
-libosu = { version = "0.0.28", features = ["serde"] }
+libosu = { git = "https://github.com/Corsace/libosu", features = ["serde"] }
 md5 = "0.7.0"
 js-sys = "0.3.64"
 
