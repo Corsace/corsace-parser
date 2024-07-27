@@ -7,7 +7,10 @@ wip
 # Build
 `wasm-pack build --target nodejs <--debug>`
 
-# Test
+# Run tests in console
+`wasm-pack test --node`
+
+# Test in web
 `cd www && npm run start`
 
 # Docs
