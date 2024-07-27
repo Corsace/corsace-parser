@@ -9,7 +9,7 @@ on:
       - '**'
 
 jobs:
-  build:
+  run_tests:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -49,9 +49,6 @@ jobs:
     - name: Install wasm-pack
       run: |
         curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-  test:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
+
     - name: Run tests
       run: wasm-pack test --node
