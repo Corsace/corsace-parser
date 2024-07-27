@@ -1,4 +1,4 @@
-import * as wasm from "replay-parser";
+import initWasm, * as wasm from "replay-parser";
 
 const replayInput = document.getElementById("replay");
 replayInput.addEventListener("change", handleFile, false);
@@ -7,11 +7,18 @@ const beatmapInput = document.getElementById("beatmap");
 beatmapInput.addEventListener("change", handleFileBeatmap, false);
 
 const replayExtrasEnabled = document.getElementById("replayextras");
-const beatmapExtrasEnabled = document.getElementById("beatmapextras");
 
 let beatmapdata = [];
 
-wasm.init_panic_hook();
+(async () => {
+  try {
+      await initWasm();
+      console.log("WASM module initialized successfully");
+  } catch (e) {
+      console.error("Error initializing WASM module:", e);
+  }
+})();
+
 function handleFile(e) {
   const file = e.currentTarget.files[0];
   if (!(file instanceof Blob)) return;
@@ -83,14 +90,9 @@ function handleFileBeatmap(e) {
 
     console.log("data size: " + data.length);
     beatmapdata = data;
-    if (beatmapExtrasEnabled.checked) {
-      console.log("calling parse_beatmapextra");
-      console.log(wasm.parseBeatmapExtra(data));
-    } else {
-      console.log("calling parse_beatmap");
-      console.log(wasm.parseBeatmap(data));
-      console.log(wasm.parseBeatmapStrains(data, arrayOfObjects));
-    }
+    console.log("calling parse_beatmap");
+    console.log(wasm.parseBeatmap(data));
+    console.log(wasm.parseBeatmapStrains(data, arrayOfObjects));
   };
   reader.readAsArrayBuffer(file);
 }
