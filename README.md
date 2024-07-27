@@ -8,7 +8,7 @@ wip
 `wasm-pack build --target nodejs <--debug>`
 
 # Test
-`cd www && npm run start`
+`wasm-pack build --target web && cd www && npm i && npm run start`
 
 # Docs
 `cargo doc --no-deps`
