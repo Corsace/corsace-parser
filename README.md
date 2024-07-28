@@ -10,5 +10,11 @@ wip
 # Test
 `wasm-pack build --target web && cd www && npm i && npm run start`
 
+# Run tests in console
+`wasm-pack test --node`
+
+# Test in web
+`cd www && npm run start`
+
 # Docs
 `cargo doc --no-deps`
