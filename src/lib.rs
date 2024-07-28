@@ -1,5 +1,4 @@
 //! wasm osu replay and beatmap parser
-#![feature(test)]
 pub mod beatmap;
 pub mod macros;
 pub mod replay;
@@ -10,8 +9,6 @@ use beatmap::{ParserBeatmap, ParserBeatmapAttributes, ParserStrains};
 use wasm_bindgen::prelude::*;
 
 use crate::{beatmap::ParserScoreState, replay::Replay};
-
-extern crate test;
 
 #[wasm_bindgen]
 extern "C" {
@@ -32,8 +29,7 @@ extern "C" {
 /// }
 /// ```
 #[wasm_bindgen(js_name = parseReplay)]
-pub fn parse_replay(replay: &mut [u8]) -> Result<Replay, JsError>
-{
+pub fn parse_replay(replay: &mut [u8]) -> Result<Replay, JsError> {
     let parsed = Replay::parse(&mut replay.as_ref(), false)?;
     Ok(parsed)
 }
@@ -52,22 +48,20 @@ pub fn parse_replay(replay: &mut [u8]) -> Result<Replay, JsError>
 /// }
 /// ```
 #[wasm_bindgen(js_name = parseReplayExtra)]
-pub fn parse_replay_extra(replay: &mut [u8], beatmap: &mut [u8]) -> Result<Replay, JsError>
-{
+pub fn parse_replay_extra(replay: &mut [u8], beatmap: &mut [u8]) -> Result<Replay, JsError> {
     let extras = Replay::parse_extra(&mut replay.as_ref(), &mut beatmap.as_ref())?;
     Ok(extras)
 }
 
 #[derive(Copy, Clone)]
 #[wasm_bindgen]
-pub struct ParserScore
-{
-    pub mods:           Option<u32>,
-    pub combo:          Option<usize>,
-    pub judgements:     Option<replay::Judgements>,
+pub struct ParserScore {
+    pub mods: Option<u32>,
+    pub combo: Option<usize>,
+    pub judgements: Option<replay::Judgements>,
     pub passed_objects: Option<usize>, //? for partial plays like fails but i dont think this is relevant in a tourney context
-    pub clock_rate:     Option<f64>, //? if theres any rate changes in the pool this could be used to calc pp from the original map
-    pub accuracy:       Option<f64>,
+    pub clock_rate: Option<f64>, //? if theres any rate changes in the pool this could be used to calc pp from the original map
+    pub accuracy: Option<f64>,
 }
 /// Parses the provided beatmap
 ///
@@ -82,8 +76,7 @@ pub struct ParserScore
 /// }
 /// ```
 #[wasm_bindgen(js_name = parseBeatmap)]
-pub fn parse_beatmap(beatmap: &mut [u8]) -> Result<ParserBeatmap, JsError>
-{
+pub fn parse_beatmap(beatmap: &mut [u8]) -> Result<ParserBeatmap, JsError> {
     let parsed = ParserBeatmap::parse(&mut beatmap.as_ref())?;
     Ok(parsed)
 }
@@ -102,9 +95,9 @@ pub fn parse_beatmap(beatmap: &mut [u8]) -> Result<ParserBeatmap, JsError>
 /// ```
 #[wasm_bindgen(js_name = parseBeatmapAttributes)]
 pub fn parse_beatmap_attributes(
-    score: Option<ParserScore>, beatmap: &mut [u8],
-) -> Result<ParserBeatmapAttributes, JsError>
-{
+    score: Option<ParserScore>,
+    beatmap: &mut [u8],
+) -> Result<ParserBeatmapAttributes, JsError> {
     Ok(ParserBeatmap::parse_beatmap_attributes(
         score,
         &mut beatmap.as_ref(),
@@ -125,15 +118,14 @@ pub fn parse_beatmap_attributes(
 /// ```
 #[wasm_bindgen(js_name = parseBeatmapStrains)]
 pub fn parse_beatmap_strains(
-    beatmap: &mut [u8], score_states: Option<Vec<JsValue>>, mods: Option<u32>,
-) -> Result<ParserStrains, JsError>
-{
+    beatmap: &mut [u8],
+    score_states: Option<Vec<JsValue>>,
+    mods: Option<u32>,
+) -> Result<ParserStrains, JsError> {
     Ok(ParserBeatmap::parse_beatmap_strains(
         &mut beatmap.as_ref(),
-        match score_states
-        {
-            Some(states) =>
-            {
+        match score_states {
+            Some(states) => {
                 let scorestates: Vec<ParserScoreState> = states
                     .iter()
                     .map(|x| serde_wasm_bindgen::from_value(x.clone()).unwrap())
@@ -147,20 +139,6 @@ pub fn parse_beatmap_strains(
 }
 /// Call on init for better panic reports when debugging, not required.
 #[wasm_bindgen]
-pub fn init_panic_hook() { utils::set_panic_hook(); }
-
-#[cfg(test)]
-mod tests
-{
-    use super::*;
-    use test::Bencher;
-
-    #[bench]
-    fn bench_parse_beatmap(b: &mut Bencher)
-    {
-        b.iter(|| {
-            let mut beatmap = include_bytes!("../beatmap2.osu").to_owned();
-            parse_beatmap(&mut beatmap)
-        });
-    }
+pub fn init_panic_hook() {
+    utils::set_panic_hook();
 }

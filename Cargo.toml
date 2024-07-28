@@ -29,6 +29,7 @@ js-sys = "0.3.64"
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3.34"
+web-time = "1.1.0"
 
 [profile.release]
 lto = true
