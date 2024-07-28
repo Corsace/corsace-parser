@@ -1,7 +1,7 @@
 #![cfg(target_arch = "wasm32")]
 
+use corsace_parser;
 use wasm_bindgen_test::*;
-use wasm_replay_parser_rs;
 use web_time::Instant;
 
 // Since this library is for npm, the line below is not needed.
@@ -28,14 +28,14 @@ fn pass() {
 #[wasm_bindgen_test]
 fn test_parse_beatmap() {
     let mut beatmap = include_bytes!("./beatmap.osu").to_owned();
-    let result = wasm_replay_parser_rs::parse_beatmap(&mut beatmap);
+    let result = corsace_parser::parse_beatmap(&mut beatmap);
     assert!(result.is_ok());
 }
 
 #[wasm_bindgen_test]
 fn test_parse_replay() {
     let mut replay = include_bytes!("./replay.osr").to_owned();
-    let result = wasm_replay_parser_rs::parse_replay(&mut replay);
+    let result = corsace_parser::parse_replay(&mut replay);
     assert!(result.is_ok());
 }
 
@@ -48,7 +48,7 @@ fn bench_parse_beatmap() {
     let mut durations = Vec::new();
     for _ in 0..100 {
         let start = Instant::now();
-        let result = wasm_replay_parser_rs::parse_beatmap(&mut beatmap);
+        let result = corsace_parser::parse_beatmap(&mut beatmap);
         assert!(result.is_ok());
         let duration = start.elapsed();
         durations.push(duration);
@@ -73,7 +73,7 @@ fn bench_parse_replay() {
     let mut durations = Vec::new();
     for _ in 0..100 {
         let start = Instant::now();
-        let result = wasm_replay_parser_rs::parse_replay(&mut replay);
+        let result = corsace_parser::parse_replay(&mut replay);
         assert!(result.is_ok());
         let duration = start.elapsed();
         durations.push(duration);
