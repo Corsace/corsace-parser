@@ -1,0 +1,66 @@
+name: Publish NPM Package
+
+on:
+  workflow_run:
+    workflows: ["Run Tests"]
+    types:
+      - completed
+    branches:
+      - 'main'
+
+jobs:
+  build_and_publish:
+    runs-on: ubuntu-latest
+
+    steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+
+        - name: Extract Cargo.toml version
+          id: extract_version
+          run: echo "::set-output name=cargo_version::$(grep '^version =' Cargo.toml | sed -E 's/version = "(.*)"/\1/')"
+  
+        - name: Fetch current npm package version
+          id: fetch_npm_version
+          run: |
+            current_version=$(npm show corsace-parser version || echo "0.0.0")
+            echo "::set-output name=npm_version::$current_version"
+  
+        - name: Compare versions and publish if Cargo.toml version is newer
+          id: compare_versions
+          run: |
+            cargo_version=${{ steps.extract_version.outputs.cargo_version }}
+            npm_version=${{ steps.fetch_npm_version.outputs.npm_version }}
+            if [ "$(printf '%s\n' "$npm_version" "$cargo_version" | sort -V | head -n1)" != "$cargo_version" ]; then
+              echo "New version detected. Publishing package..."
+              echo "::set-output name=should_publish::true"
+            else
+              echo "No new version. Skipping publish."
+              echo "::set-output name=should_publish::false"
+            fi
+
+        - name: Set up Rust
+          if: steps.compare_versions.outputs.should_publish == 'true'
+          uses: actions-rs/toolchain@v1
+          with:
+            toolchain: stable
+            target: wasm32-unknown-unknown
+            profile: minimal
+
+        - name: Install wasm-pack
+          if: steps.compare_versions.outputs.should_publish == 'true'
+          run: |
+            curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+        - name: Build WASM
+          if: steps.compare_versions.outputs.should_publish == 'true'
+          run: wasm-pack build --target nodejs
+
+        - name: Configure NPM
+          if: steps.compare_versions.outputs.should_publish == 'true'
+          run: npm config set //registry.npmjs.org/:_authToken=${{ secrets.NPM_AUTH_TOKEN }}
+
+        - name: Publish NPM package
+          if: steps.compare_versions.outputs.should_publish == 'true'
+          run: npm publish --access public
+          working-directory: ./pkg
