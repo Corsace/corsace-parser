@@ -1,7 +1,7 @@
 [package]
 name = "corsace-parser"
 description = "An npm library built via rust/wasm for parsing osu! beatmaps and replays."
-version = "0.2.1"
+version = "0.2.2"
 authors = ["riesha <seleneia@outlook.jp>", "VINXIS <oykxf2@gmail.com>"]
 repository = "https://github.com/Corsace/corsace-parser"
 license = "MIT"
