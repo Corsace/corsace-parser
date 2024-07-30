@@ -137,10 +137,12 @@ bitflags! {
         const LastMod = 4194304;
         const TargetPractice = 8388608;
         const Key9 = 16777216;
-        const Key10 = 33554432;
+        const KeyCoop = 33554432;
         const Key1 = 67108864;
         const Key3 = 134217728;
         const Key2 = 268435456;
+        const ScoreV2 = 536870912;
+        const Mirror = 1073741824;
     }
 }
 bitflags! {
