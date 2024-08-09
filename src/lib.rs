@@ -9,6 +9,7 @@ use beatmap::{ParserBeatmap, ParserBeatmapAttributes, ParserStrains};
 use wasm_bindgen::prelude::*;
 
 use crate::{beatmap::ParserScoreState, replay::Replay};
+use libosu::replay::Replay as LibOsuReplay;
 
 #[wasm_bindgen]
 extern "C" {
@@ -53,6 +54,15 @@ pub fn parse_replay_extra(replay: &mut [u8], beatmap: &mut [u8]) -> Result<Repla
     Ok(extras)
 }
 
+#[wasm_bindgen(js_name = changeReplayHash)]
+pub fn change_replay_hash(replay: &mut [u8], beatmap_hash: String) -> Result<Vec<u8>, JsError> {
+    let mut replay = LibOsuReplay::parse(&mut replay.as_ref())?;
+    replay.beatmap_hash = beatmap_hash;
+    let mut out_buf = Vec::new();
+    replay.write(&mut out_buf)?;
+
+    Ok(out_buf)
+}
 #[derive(Copy, Clone)]
 #[wasm_bindgen]
 pub struct ParserScore {
